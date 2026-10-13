@@ -4,3 +4,7 @@ __pycache__/
 models/*.joblib
 .DS_Store
 data/processed/*
+
+# Haftalik raporlar repoya yuklenmez
+reports/haftalik/*.md
+reports/haftalik/*.pdf
