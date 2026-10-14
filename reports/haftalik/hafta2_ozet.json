@@ -1,0 +1,74 @@
+{
+  "dataset_shape": {
+    "rows": 45211,
+    "cols": 17
+  },
+  "target_counts": {
+    "no": 39922,
+    "yes": 5289
+  },
+  "target_pct": {
+    "no": 88.3015,
+    "yes": 11.6985
+  },
+  "unknown_counts": {
+    "poutcome": 36959,
+    "contact": 13020,
+    "education": 1857,
+    "job": 288,
+    "age": 0,
+    "default": 0,
+    "balance": 0,
+    "housing": 0,
+    "marital": 0,
+    "loan": 0,
+    "day": 0,
+    "duration": 0,
+    "month": 0,
+    "campaign": 0,
+    "pdays": 0,
+    "previous": 0,
+    "y": 0
+  },
+  "pdays_minus_one_count": 36954,
+  "pdays_minus_one_pct": 81.7367,
+  "pdays_poutcome_crosstab": {
+    "pdays_equal_minus_one": {
+      "failure": 0,
+      "other": 0,
+      "success": 0,
+      "unknown": 36954,
+      "All": 36954
+    },
+    "pdays_not_minus_one": {
+      "failure": 4901,
+      "other": 1840,
+      "success": 1511,
+      "unknown": 5,
+      "All": 8257
+    },
+    "all": {
+      "failure": 4901,
+      "other": 1840,
+      "success": 1511,
+      "unknown": 36959,
+      "All": 45211
+    }
+  },
+  "pdays_minus_one_poutcome_unknown_count": 36954,
+  "pdays_not_minus_one_poutcome_unknown_count": 5,
+  "previous_zero_equals_pdays_minus_one": true,
+  "baseline_model_metrics": {
+    "accuracy": 0.883,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "roc_auc": 0.5,
+    "pr_auc": 0.117
+  },
+  "duplicate_rows": 0,
+  "duration_mean_by_target": {
+    "no": 221.18,
+    "yes": 537.29
+  }
+}
