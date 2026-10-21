@@ -1,0 +1,4 @@
+[tool.pytest.ini_options]
+# Testler src/ ve reports/ modüllerini proje kökünden içe aktarır.
+pythonpath = ["."]
+testpaths = ["tests"]
