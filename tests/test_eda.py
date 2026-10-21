@@ -7,6 +7,7 @@ from src.eda import (
     iqr_outlier_summary,
     mann_whitney_tests,
     numeric_summary,
+    pdays_poutcome_crosstab,
 )
 
 
@@ -140,3 +141,16 @@ def test_rate_by_bins_rejects_empty_bins_instead_of_dropping_them() -> None:
 
     with pytest.raises(ValueError, match="boş aralıklar"):
         rate_by_bins(df, "age", [-float("inf"), 25, 60, float("inf")], ["genç", "orta", "yaşlı"])
+
+
+def test_pdays_poutcome_crosstab_rows_are_readable_by_name_with_totals() -> None:
+    df = make_frame(
+        pdays=[-1, -1, -1, 10, 20],
+        poutcome=["unknown", "unknown", "unknown", "failure", "success"],
+    )
+
+    table = pdays_poutcome_crosstab(df)
+
+    assert table.loc["pdays_equal_minus_one", "unknown"] == 3
+    assert table.loc["pdays_not_minus_one", "failure"] == 1
+    assert table.loc["All", "All"] == 5
