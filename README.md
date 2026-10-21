@@ -72,6 +72,9 @@ python notebooks/build_kesifsel_analiz.py
 
 # Hafta 3 raporu (.docx); --kaptan o haftanın kaptanının öğrenci numarası
 python reports/hafta3_rapor.py --kaptan 230260054
+
+# Aynı raporun kısa sürümü (tablo ve şekiller aynı, anlatım kısaltılmış)
+python reports/hafta3_rapor_kisa.py --kaptan 230260054
 ```
 Rapor `reports/haftalik/` altına yazılır ve repoya eklenmez. Rapordaki tüm sayılar `reports/haftalik/hafta3_ozet.json` dosyasından okunur.
 
