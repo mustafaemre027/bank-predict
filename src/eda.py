@@ -4,12 +4,15 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-from src.config import TARGET
+from src.config import NOT_PREVIOUSLY_CONTACTED, TARGET
 
 POSITIVE_LABEL = "yes"
 IQR_MULTIPLIER = 1.5
 # Ki-kare testinin güvenilirliği için beklenen frekansların en az 5 olması önerilir (Cochran kuralı).
 MIN_EXPECTED_FREQUENCY = 5
+PDAYS_NOT_CONTACTED_ROW = "pdays_equal_minus_one"
+PDAYS_CONTACTED_ROW = "pdays_not_minus_one"
+CROSSTAB_TOTAL_LABEL = "All"
 
 
 def acceptance_rate_by(df: pd.DataFrame, column: str, target: str = TARGET) -> pd.DataFrame:
@@ -19,6 +22,13 @@ def acceptance_rate_by(df: pd.DataFrame, column: str, target: str = TARGET) -> p
     table["acceptance_rate"] = table["yes_count"] / table["count"]
     table["lift"] = table["acceptance_rate"] / is_positive.mean()
     return table.sort_values("acceptance_rate", ascending=False)
+
+
+def pdays_poutcome_crosstab(df: pd.DataFrame) -> pd.DataFrame:
+    """pdays=-1 olup olmama durumuna göre poutcome dağılımını, toplam satır ve sütunla birlikte döndürür."""
+    # pandas 3'te bool etiketli satır indeksi .loc[True] ile okunamadığı için satırlar adlandırılır.
+    row_labels = np.where(df["pdays"] == NOT_PREVIOUSLY_CONTACTED, PDAYS_NOT_CONTACTED_ROW, PDAYS_CONTACTED_ROW)
+    return pd.crosstab(pd.Series(row_labels, index=df.index, name="pdays"), df["poutcome"], margins=True, margins_name=CROSSTAB_TOTAL_LABEL)
 
 
 def numeric_summary(df: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
