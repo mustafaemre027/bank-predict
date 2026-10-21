@@ -119,15 +119,14 @@ def decimal(value: float, digits: int = 3) -> str:
 def add_introduction(report: WeeklyReport, summary: Summary) -> None:
     report.add_heading("1. GİRİŞ")
     report.add_box([
-        "İkinci haftada proje altyapısı kurulmuş, Bank Marketing veri seti doğrulanmış, unknown değerlerin ve pdays değişkeninin "
-        "anlamı ortaya konmuş, duration değişkeni veri sızıntısı nedeniyle modelden çıkarılmış ve her müşteriye \"kabul etmez\" "
-        "diyen bir referans model kurulmuştu.",
-        "Üçüncü haftada CRISP-DM sürecinin \"veriyi anlama\" aşaması tamamlandı. Her değişkenin kampanyayı kabul etme oranıyla "
-        "ilişkisi incelendi, sayısal değişkenlerin dağılımları ve aykırı değerleri analiz edildi, değişkenler arası korelasyonlara "
-        f"bakıldı ve bu ilişkilerin anlamlılığı ile büyüklüğü istatistiksel testlerle ölçüldü. Analizler {format_number(summary['row_count'])} "
-        "kaydın tamamı üzerinde yapıldı. Bulgulara dayanarak dördüncü haftada uygulanacak ön işleme adımlarının karar taslağı "
-        "hazırlandı. Ayrıca proje belgeleri genişletilerek ürün gereksinim belgesi (PRD), gereksinim analizinin ikinci sürümü ve "
-        "10 haftalık yol haritası oluşturuldu.",
+        "İkinci haftada proje altyapısını kurduk, Bank Marketing veri setini doğruladık, unknown değerlerin ve pdays değişkeninin "
+        "ne anlama geldiğini çözdük. duration değişkenini veri sızıntısı olduğu için modelden çıkardık ve her müşteriye \"kabul "
+        "etmez\" diyen bir referans model kurduk.",
+        "Üçüncü haftada CRISP-DM sürecinin \"veriyi anlama\" aşamasını bitirdik. Her değişkenin kampanyayı kabul etmeyle ilişkisine "
+        "baktık, sayısal değişkenlerin dağılımlarını ve aykırı değerlerini inceledik, değişkenler arasındaki korelasyonları çıkardık "
+        f"ve ilişkilerin anlamlılığını testlerle ölçtük. Analizlerin hepsi {format_number(summary['row_count'])} kaydın tamamı "
+        "üzerinde yapıldı. Çıkan bulgulara göre dördüncü haftada uygulanacak ön işleme adımları için bir karar taslağı hazırladık. "
+        "Bunun yanında ürün gereksinim belgesini (PRD), gereksinim analizinin ikinci sürümünü ve 10 haftalık yol haritasını yazdık.",
     ])
 
 
@@ -164,7 +163,7 @@ def add_method(report: WeeklyReport) -> None:
         "değil, etki büyüklüğüne göre değerlendirilmiştir.",
         "Hesaplamalar src/eda.py modülünde fonksiyonlar hâlinde yazılmış ve elle doğrulanabilen küçük örnek verilerle birim "
         "testleriyle kontrol edilmiştir. Rapordaki tüm sayılar notebooks/build_kesifsel_analiz.py betiğinin ürettiği hafta3_ozet.json "
-        "dosyasından alınmıştır. Betik tekrar çalıştırıldığında aynı sonuçlar elde edilir.",
+        "dosyasından alınmıştır. Betik yeniden çalıştırıldığında aynı sayıları üretir.",
     ])
 
 
@@ -210,26 +209,25 @@ def add_categorical_findings(report: WeeklyReport, summary: Summary) -> None:
         f"unknown değerlerin aylara dağılımına bakıldığında iletişim türü kaydedilmemiş aramaların payı mayıs ayında "
         f"{format_percent(summary['contact_unknown_share_by_month']['may'])}, haziran ayında "
         f"{format_percent(summary['contact_unknown_share_by_month']['jun'])} olarak bulunmuştur. "
-        "Bu durum, unknown değerinin rastgele bir eksiklik olmadığını, veri toplamanın belirli bir dönemine ait olduğunu "
-        "göstermektedir. Bu nedenle unknown değerler silinmeyecek, ayrı bir kategori olarak modelde tutulacaktır. Eğitim düzeyinde "
-        f"yükseköğretim mezunlarının kabul oranı ({rate(summary, 'education', 'tertiary')}) ilköğretim mezunlarınınkinden "
-        f"({rate(summary, 'education', 'primary')}) belirgin şekilde yüksektir."
+        "Yani unknown değerler rastgele eksik veri gibi durmuyor, veri toplamanın belirli bir dönemine ait görünüyor. Bu yüzden "
+        "silinmeyecek, ayrı bir kategori olarak modelde tutulacak. Eğitim düzeyinde yükseköğretim mezunlarının kabul oranı "
+        f"({rate(summary, 'education', 'tertiary')}) ilköğretim mezunlarınınkinden ({rate(summary, 'education', 'primary')}) daha yüksektir."
     )
     report.add_figure(FIGURES_DIR / "h3_kabul_poutcome_contact_education.png", "Önceki kampanya sonucu, iletişim türü ve eğitim düzeyine göre kabul oranları", width=Cm(13))
     report.add_paragraph(
         f"Aylara göre kabul oranları çok farklıdır. Mart ({rate(summary, 'month', 'mar')}), eylül ({rate(summary, 'month', 'sep')}), "
         f"ekim ({rate(summary, 'month', 'oct')}) ve aralıkta ({rate(summary, 'month', 'dec')}) kabul oranı yüksektir. Ancak bu aylarda "
         f"yapılan arama sayısı azdır (aralıkta yalnızca {count(summary, 'month', 'dec')} arama). En çok aramanın yapıldığı mayıs ayında "
-        f"({count(summary, 'month', 'may')} arama) kabul oranı en düşük seviyededir ({rate(summary, 'month', 'may')}). Az gözlemli "
-        "ayların yüksek oranları modelin bu ayları ezberlemesine yol açabileceği için etkileri çapraz doğrulamada izlenecektir."
+        f"({count(summary, 'month', 'may')} arama) kabul oranı en düşük seviyededir ({rate(summary, 'month', 'may')}). Arama sayısı "
+        "az olan ayların oranları güvenilir olmayabilir. Modelin bu aylara aşırı uyum sağlayıp sağlamadığına çapraz doğrulamada bakılacaktır."
     )
     report.add_figure(FIGURES_DIR / "h3_kabul_ay.png", "Son iletişim ayına göre kabul oranları", width=Cm(14))
     report.add_paragraph(
         f"Meslekler arasında öğrenciler ({rate(summary, 'job', 'student')}) ve emekliler ({rate(summary, 'job', 'retired')}) en "
         f"yüksek kabul oranına sahiptir. Mavi yakalı çalışanlarda ise oran {rate(summary, 'job', 'blue-collar')} düzeyindedir. Konut kredisi "
         f"olmayanların kabul oranı {rate(summary, 'housing', 'no')}, olanların {rate(summary, 'housing', 'yes')} olarak ölçülmüştür. Bireysel kredisi "
-        f"olanlarda ({rate(summary, 'loan', 'yes')}) ve bekârlarda ({rate(summary, 'marital', 'single')}) da genel orandan "
-        "belirgin farklar görülmektedir."
+        f"olanlarda ({rate(summary, 'loan', 'yes')}) ve bekârlarda ({rate(summary, 'marital', 'single')}) da oran genel orandan "
+        "farklıdır."
     )
     report.add_figure(FIGURES_DIR / "h3_kabul_meslek.png", "Mesleğe göre kabul oranları", width=Cm(14))
 
@@ -243,8 +241,8 @@ def add_age_campaign_findings(report: WeeklyReport, summary: Summary) -> None:
         f"Yaş ile kabul arasındaki ilişki doğrusal değildir. 18-25 yaş grubunda kabul oranı {format_percent(ages['18-25']['acceptance_rate'])}, "
         f"61 yaş ve üzerinde {format_percent(ages['61+']['acceptance_rate'])} iken orta yaş gruplarında oran "
         f"{format_percent(ages['41-50']['acceptance_rate'])} ile {format_percent(ages['31-40']['acceptance_rate'])} arasında kalmaktadır. "
-        "U şeklindeki bu ilişki meslek bulgusuyla da tutarlıdır (öğrenciler ve emekliler). Doğrusal bir model yaşı tek bir sayısal "
-        "değişken olarak kullandığında bu ilişkiyi yakalayamaz. Bu nedenle dördüncü haftada yaş grubu özelliği de denenecektir."
+        "U şeklindeki bu ilişki meslek bulgusuyla da uyuyor (öğrenciler ve emekliler). Lojistik Regresyon yaşı tek bir sayı olarak "
+        "aldığında bu şekli yakalayamaz, bu yüzden dördüncü haftada yaş grubu özelliği de denenecektir."
     )
     report.add_figure(FIGURES_DIR / "h3_kabul_yas.png", "Yaş grubuna göre kabul oranları", width=Cm(14))
     report.add_paragraph(
@@ -318,9 +316,9 @@ def describe_strong_pairs(pairs: list[dict[str, Any]]) -> str:
     described = join_names([f"{pair['first']} ile {pair['second']} arasında (r = {decimal(pair['spearman'], 3)})" for pair in pairs])
     lead = "tek güçlü ilişki" if len(pairs) == 1 else "güçlü ilişkiler"
     return (
-        f"Sayısal değişkenler arasındaki {lead} (|r| ≥ 0,5) {described} görülmektedir. Güçlü ilişkili "
-        "değişkenler büyük ölçüde aynı bilgiyi taşıdığından Lojistik Regresyon'da çoklu doğrusallık katsayıların yorumunu "
-        "zorlaştırır. Bu nedenle L2 düzenlileştirme kullanılacak ve katsayılar bu bilgiyle yorumlanacaktır."
+        f"Sayısal değişkenler arasındaki {lead} (|r| ≥ 0,5) {described} görülmektedir. Bu değişkenler büyük ölçüde aynı "
+        "bilgiyi taşıdığı için Lojistik Regresyon katsayılarını yorumlamak zorlaşır. L2 düzenlileştirme kullanılacak ve "
+        "katsayılar yorumlanırken bu durum akılda tutulacaktır."
     )
 
 
@@ -329,8 +327,8 @@ def add_correlation_findings(report: WeeklyReport, summary: Summary) -> None:
     top = ranking[:3]
     age = next(item for item in ranking if item["column"] == "age")
     age_text = (
-        f"Yaşın hedefle korelasyonu ({decimal(age['spearman'], 3)}) neredeyse sıfırdır. Bu, yaşın önemsiz olduğu anlamına gelmez. "
-        "Bölüm 4.2'de görüldüğü gibi ilişki monoton değil U şeklindedir ve sıralama korelasyonu bu tür ilişkileri ölçemez."
+        f"Yaşın hedefle korelasyonu ({decimal(age['spearman'], 3)}) neredeyse sıfırdır. Oysa Bölüm 4.2'de yaşın kabulle ilişkili "
+        "olduğunu gördük. İlişki U şeklinde olduğu için sıralamaya dayalı korelasyon bunu yakalayamıyor."
         if abs(age["spearman"]) < NEGLIGIBLE_CORRELATION
         else f"Yaşın hedefle korelasyonu {decimal(age['spearman'], 3)} olarak ölçülmüştür."
     )
@@ -371,9 +369,8 @@ def describe_mann_whitney(mann_whitney: dict[str, Any]) -> str:
             for column in not_significant
         ])
         sentence += (
-            f" {details} için fark anlamlı değildir. Ancak bu sonuç ilgili değişkenin kabulle ilişkisiz olduğu anlamına gelmez. "
-            "Mann-Whitney testi grupların sıralamasındaki kaymayı ölçer; yaşta görülen ve iki uçta yükselen U şeklindeki "
-            "ilişkiyi göremez."
+            f" {details} için fark anlamlı çıkmamıştır. Bu, değişkenin kabulle ilgisiz olduğunu göstermez. Mann-Whitney testi "
+            "grupların birbirine göre kaymasına baktığı için yaştaki U şeklini göremez."
         )
     return sentence
 
@@ -445,12 +442,11 @@ def add_preprocessing_decisions(report: WeeklyReport) -> None:
 def add_documents(report: WeeklyReport) -> None:
     report.add_heading("4.7. Proje Belgelerinin Güncellenmesi")
     report.add_paragraph(
-        "Bu hafta proje belgeleri genişletilmiştir. Ürün gereksinim belgesinde (PRD) problem, çözüm, kullanıcı hikâyeleri, uygulama ve "
-        "test kararları ile ölçülebilir kabul kriterleri tanımlanmıştır. Gereksinim analizinin ikinci sürümünde her gereksinime "
-        "öncelik (MoSCoW), kabul kriteri, doğrulama yöntemi ve hedef hafta eklenmiş, veri sızıntısı analizi, risk kaydı ve "
-        "gereksinim, modül, test ve hafta arasındaki izlenebilirlik matrisi oluşturulmuştur. 10 haftalık yol haritasında her hafta "
-        "için hedefler, üye bazında görevler, teslim edilecek çıktılar ve takım kaptanı rotasyonu belirlenmiştir. Belgeler proje "
-        "deposunun docs klasöründedir."
+        "Bu hafta proje belgelerini genişlettik. PRD'de problem, çözüm, kullanıcı hikâyeleri, uygulama ve test kararları ile "
+        "ölçülebilir kabul kriterleri yer alıyor. Gereksinim analizinin ikinci sürümünde her gereksinime öncelik (MoSCoW), kabul "
+        "kriteri, doğrulama yöntemi ve hedef hafta ekledik; ayrıca veri sızıntısı analizini, risk kaydını ve gereksinimlerle "
+        "modüller, testler ve haftalar arasındaki izlenebilirlik matrisini hazırladık. 10 haftalık yol haritasında her hafta için "
+        "hedefler, üye bazında görevler, teslimler ve kaptan rotasyonu var. Belgelerin hepsi deponun docs klasöründedir."
     )
 
 
@@ -468,11 +464,10 @@ def build_report(summary: Summary, captain_id: str) -> WeeklyReport:
     add_project_management(report)
     report.add_heading("4. TEORİ VE SONUÇLAR")
     report.add_box([
-        "Müşterilerin durumları, sosyoekonomik özellikleri ve geçmiş bankacılık alışkanlıkları pazarlama kampanyalarına verecekleri "
-        "yanıtı doğrudan etkilemektedir. Bu hafta yapılan keşifsel analiz bu varsayımı sayılarla desteklemiştir. Önceki kampanya "
-        "sonucu, iletişim ayı ve türü, yaş grubu ve arama sayısı kabul oranıyla güçlü ilişkiler göstermektedir. Bazı ilişkilerin "
-        "doğrusal olmaması, ağaç tabanlı modellerin bu veride avantajlı olabileceğine işaret etmektedir. Bu haftanın sonuçları "
-        "aşağıdaki alt başlıklarda verilmiştir.",
+        "Bu hafta yapılan keşifsel analizde müşterinin geçmişi ve özellikleri ile kampanyayı kabul etmesi arasında ilişki olduğu "
+        "görüldü. En belirgin farklar önceki kampanya sonucunda, iletişim ayı ve türünde, yaş grubunda ve arama sayısında çıktı. "
+        "İlişkilerden bazıları doğrusal olmadığı için ağaç tabanlı modeller bu veride daha iyi sonuç verebilir. Sonuçlar aşağıdaki "
+        "alt başlıklarda verilmiştir.",
     ])
     add_categorical_findings(report, summary)
     add_age_campaign_findings(report, summary)
