@@ -1,0 +1,733 @@
+{
+  "row_count": 45211,
+  "yes_count": 5289,
+  "overall_acceptance_rate": 0.117,
+  "acceptance_rates": {
+    "job": {
+      "student": {
+        "count": 938,
+        "yes_count": 269,
+        "acceptance_rate": 0.2868,
+        "lift": 2.4514
+      },
+      "retired": {
+        "count": 2264,
+        "yes_count": 516,
+        "acceptance_rate": 0.2279,
+        "lift": 1.9482
+      },
+      "unemployed": {
+        "count": 1303,
+        "yes_count": 202,
+        "acceptance_rate": 0.155,
+        "lift": 1.3252
+      },
+      "management": {
+        "count": 9458,
+        "yes_count": 1301,
+        "acceptance_rate": 0.1376,
+        "lift": 1.1758
+      },
+      "admin.": {
+        "count": 5171,
+        "yes_count": 631,
+        "acceptance_rate": 0.122,
+        "lift": 1.0431
+      },
+      "self-employed": {
+        "count": 1579,
+        "yes_count": 187,
+        "acceptance_rate": 0.1184,
+        "lift": 1.0123
+      },
+      "unknown": {
+        "count": 288,
+        "yes_count": 34,
+        "acceptance_rate": 0.1181,
+        "lift": 1.0092
+      },
+      "technician": {
+        "count": 7597,
+        "yes_count": 840,
+        "acceptance_rate": 0.1106,
+        "lift": 0.9452
+      },
+      "services": {
+        "count": 4154,
+        "yes_count": 369,
+        "acceptance_rate": 0.0888,
+        "lift": 0.7593
+      },
+      "housemaid": {
+        "count": 1240,
+        "yes_count": 109,
+        "acceptance_rate": 0.0879,
+        "lift": 0.7514
+      },
+      "entrepreneur": {
+        "count": 1487,
+        "yes_count": 123,
+        "acceptance_rate": 0.0827,
+        "lift": 0.7071
+      },
+      "blue-collar": {
+        "count": 9732,
+        "yes_count": 708,
+        "acceptance_rate": 0.0727,
+        "lift": 0.6219
+      }
+    },
+    "marital": {
+      "single": {
+        "count": 12790,
+        "yes_count": 1912,
+        "acceptance_rate": 0.1495,
+        "lift": 1.2779
+      },
+      "divorced": {
+        "count": 5207,
+        "yes_count": 622,
+        "acceptance_rate": 0.1195,
+        "lift": 1.0211
+      },
+      "married": {
+        "count": 27214,
+        "yes_count": 2755,
+        "acceptance_rate": 0.1012,
+        "lift": 0.8654
+      }
+    },
+    "education": {
+      "tertiary": {
+        "count": 13301,
+        "yes_count": 1996,
+        "acceptance_rate": 0.1501,
+        "lift": 1.2828
+      },
+      "unknown": {
+        "count": 1857,
+        "yes_count": 252,
+        "acceptance_rate": 0.1357,
+        "lift": 1.16
+      },
+      "secondary": {
+        "count": 23202,
+        "yes_count": 2450,
+        "acceptance_rate": 0.1056,
+        "lift": 0.9026
+      },
+      "primary": {
+        "count": 6851,
+        "yes_count": 591,
+        "acceptance_rate": 0.0863,
+        "lift": 0.7374
+      }
+    },
+    "default": {
+      "no": {
+        "count": 44396,
+        "yes_count": 5237,
+        "acceptance_rate": 0.118,
+        "lift": 1.0083
+      },
+      "yes": {
+        "count": 815,
+        "yes_count": 52,
+        "acceptance_rate": 0.0638,
+        "lift": 0.5454
+      }
+    },
+    "housing": {
+      "no": {
+        "count": 20081,
+        "yes_count": 3354,
+        "acceptance_rate": 0.167,
+        "lift": 1.4277
+      },
+      "yes": {
+        "count": 25130,
+        "yes_count": 1935,
+        "acceptance_rate": 0.077,
+        "lift": 0.6582
+      }
+    },
+    "loan": {
+      "no": {
+        "count": 37967,
+        "yes_count": 4805,
+        "acceptance_rate": 0.1266,
+        "lift": 1.0818
+      },
+      "yes": {
+        "count": 7244,
+        "yes_count": 484,
+        "acceptance_rate": 0.0668,
+        "lift": 0.5711
+      }
+    },
+    "contact": {
+      "cellular": {
+        "count": 29285,
+        "yes_count": 4369,
+        "acceptance_rate": 0.1492,
+        "lift": 1.2753
+      },
+      "telephone": {
+        "count": 2906,
+        "yes_count": 390,
+        "acceptance_rate": 0.1342,
+        "lift": 1.1472
+      },
+      "unknown": {
+        "count": 13020,
+        "yes_count": 530,
+        "acceptance_rate": 0.0407,
+        "lift": 0.348
+      }
+    },
+    "month": {
+      "jan": {
+        "count": 1403,
+        "yes_count": 142,
+        "acceptance_rate": 0.1012,
+        "lift": 0.8652
+      },
+      "feb": {
+        "count": 2649,
+        "yes_count": 441,
+        "acceptance_rate": 0.1665,
+        "lift": 1.4231
+      },
+      "mar": {
+        "count": 477,
+        "yes_count": 248,
+        "acceptance_rate": 0.5199,
+        "lift": 4.4443
+      },
+      "apr": {
+        "count": 2932,
+        "yes_count": 577,
+        "acceptance_rate": 0.1968,
+        "lift": 1.6822
+      },
+      "may": {
+        "count": 13766,
+        "yes_count": 925,
+        "acceptance_rate": 0.0672,
+        "lift": 0.5744
+      },
+      "jun": {
+        "count": 5341,
+        "yes_count": 546,
+        "acceptance_rate": 0.1022,
+        "lift": 0.8739
+      },
+      "jul": {
+        "count": 6895,
+        "yes_count": 627,
+        "acceptance_rate": 0.0909,
+        "lift": 0.7773
+      },
+      "aug": {
+        "count": 6247,
+        "yes_count": 688,
+        "acceptance_rate": 0.1101,
+        "lift": 0.9414
+      },
+      "sep": {
+        "count": 579,
+        "yes_count": 269,
+        "acceptance_rate": 0.4646,
+        "lift": 3.9714
+      },
+      "oct": {
+        "count": 738,
+        "yes_count": 323,
+        "acceptance_rate": 0.4377,
+        "lift": 3.7412
+      },
+      "nov": {
+        "count": 3970,
+        "yes_count": 403,
+        "acceptance_rate": 0.1015,
+        "lift": 0.8677
+      },
+      "dec": {
+        "count": 214,
+        "yes_count": 100,
+        "acceptance_rate": 0.4673,
+        "lift": 3.9944
+      }
+    },
+    "poutcome": {
+      "success": {
+        "count": 1511,
+        "yes_count": 978,
+        "acceptance_rate": 0.6473,
+        "lift": 5.5328
+      },
+      "other": {
+        "count": 1840,
+        "yes_count": 307,
+        "acceptance_rate": 0.1668,
+        "lift": 1.4262
+      },
+      "failure": {
+        "count": 4901,
+        "yes_count": 618,
+        "acceptance_rate": 0.1261,
+        "lift": 1.0779
+      },
+      "unknown": {
+        "count": 36959,
+        "yes_count": 3386,
+        "acceptance_rate": 0.0916,
+        "lift": 0.7831
+      }
+    }
+  },
+  "age_bin_rates": {
+    "18-25": {
+      "count": 1336,
+      "yes_count": 320,
+      "acceptance_rate": 0.2395,
+      "lift": 2.0475
+    },
+    "26-30": {
+      "count": 5694,
+      "yes_count": 825,
+      "acceptance_rate": 0.1449,
+      "lift": 1.2385
+    },
+    "31-40": {
+      "count": 17687,
+      "yes_count": 1812,
+      "acceptance_rate": 0.1024,
+      "lift": 0.8757
+    },
+    "41-50": {
+      "count": 11239,
+      "yes_count": 1019,
+      "acceptance_rate": 0.0907,
+      "lift": 0.775
+    },
+    "51-60": {
+      "count": 8067,
+      "yes_count": 811,
+      "acceptance_rate": 0.1005,
+      "lift": 0.8594
+    },
+    "61+": {
+      "count": 1188,
+      "yes_count": 502,
+      "acceptance_rate": 0.4226,
+      "lift": 3.6121
+    }
+  },
+  "campaign_bin_rates": {
+    "1": {
+      "count": 17544,
+      "yes_count": 2561,
+      "acceptance_rate": 0.146,
+      "lift": 1.2478
+    },
+    "2": {
+      "count": 12505,
+      "yes_count": 1401,
+      "acceptance_rate": 0.112,
+      "lift": 0.9577
+    },
+    "3": {
+      "count": 5521,
+      "yes_count": 618,
+      "acceptance_rate": 0.1119,
+      "lift": 0.9568
+    },
+    "4": {
+      "count": 3522,
+      "yes_count": 317,
+      "acceptance_rate": 0.09,
+      "lift": 0.7694
+    },
+    "5": {
+      "count": 1764,
+      "yes_count": 139,
+      "acceptance_rate": 0.0788,
+      "lift": 0.6736
+    },
+    "6-10": {
+      "count": 3159,
+      "yes_count": 206,
+      "acceptance_rate": 0.0652,
+      "lift": 0.5574
+    },
+    "11+": {
+      "count": 1196,
+      "yes_count": 47,
+      "acceptance_rate": 0.0393,
+      "lift": 0.3359
+    }
+  },
+  "previously_contacted_rates": {
+    "contacted": 0.2307,
+    "not_contacted": 0.0916,
+    "contacted_count": 8257
+  },
+  "contact_unknown_share_by_month": {
+    "jan": 0.0064,
+    "feb": 0.0049,
+    "mar": 0.0147,
+    "apr": 0.002,
+    "may": 0.5793,
+    "jun": 0.8485,
+    "jul": 0.04,
+    "aug": 0.0082,
+    "sep": 0.0812,
+    "oct": 0.0678,
+    "nov": 0.0128,
+    "dec": 0.014
+  },
+  "numeric_summary": {
+    "age": {
+      "count": 45211.0,
+      "mean": 40.9362,
+      "std": 10.6188,
+      "min": 18.0,
+      "25%": 33.0,
+      "50%": 39.0,
+      "75%": 48.0,
+      "max": 95.0,
+      "skewness": 0.6848
+    },
+    "balance": {
+      "count": 45211.0,
+      "mean": 1362.2721,
+      "std": 3044.7658,
+      "min": -8019.0,
+      "25%": 72.0,
+      "50%": 448.0,
+      "75%": 1428.0,
+      "max": 102127.0,
+      "skewness": 8.3603
+    },
+    "day": {
+      "count": 45211.0,
+      "mean": 15.8064,
+      "std": 8.3225,
+      "min": 1.0,
+      "25%": 8.0,
+      "50%": 16.0,
+      "75%": 21.0,
+      "max": 31.0,
+      "skewness": 0.0931
+    },
+    "campaign": {
+      "count": 45211.0,
+      "mean": 2.7638,
+      "std": 3.098,
+      "min": 1.0,
+      "25%": 1.0,
+      "50%": 2.0,
+      "75%": 3.0,
+      "max": 63.0,
+      "skewness": 4.8987
+    },
+    "pdays": {
+      "count": 45211.0,
+      "mean": 40.1978,
+      "std": 100.1287,
+      "min": -1.0,
+      "25%": -1.0,
+      "50%": -1.0,
+      "75%": -1.0,
+      "max": 871.0,
+      "skewness": 2.6157
+    },
+    "previous": {
+      "count": 45211.0,
+      "mean": 0.5803,
+      "std": 2.3034,
+      "min": 0.0,
+      "25%": 0.0,
+      "50%": 0.0,
+      "75%": 0.0,
+      "max": 275.0,
+      "skewness": 41.8465
+    }
+  },
+  "iqr_outliers": {
+    "age": {
+      "q1": 33.0,
+      "q3": 48.0,
+      "iqr": 15.0,
+      "lower_bound": 10.5,
+      "upper_bound": 70.5,
+      "outlier_count": 487,
+      "outlier_pct": 1.0772
+    },
+    "balance": {
+      "q1": 72.0,
+      "q3": 1428.0,
+      "iqr": 1356.0,
+      "lower_bound": -1962.0,
+      "upper_bound": 3462.0,
+      "outlier_count": 4729,
+      "outlier_pct": 10.4598
+    },
+    "campaign": {
+      "q1": 1.0,
+      "q3": 3.0,
+      "iqr": 2.0,
+      "lower_bound": -2.0,
+      "upper_bound": 6.0,
+      "outlier_count": 3064,
+      "outlier_pct": 6.7771
+    },
+    "previous": {
+      "q1": 0.0,
+      "q3": 0.0,
+      "iqr": 0.0,
+      "lower_bound": 0.0,
+      "upper_bound": 0.0,
+      "outlier_count": 8257,
+      "outlier_pct": 18.2633
+    }
+  },
+  "iqr_outliers_contacted_only": {
+    "pdays": {
+      "q1": 133.0,
+      "q3": 327.0,
+      "iqr": 194.0,
+      "lower_bound": -158.0,
+      "upper_bound": 618.0,
+      "outlier_count": 49,
+      "outlier_pct": 0.5934
+    },
+    "previous": {
+      "q1": 1.0,
+      "q3": 4.0,
+      "iqr": 3.0,
+      "lower_bound": -3.5,
+      "upper_bound": 8.5,
+      "outlier_count": 453,
+      "outlier_pct": 5.4863
+    }
+  },
+  "outlier_acceptance": {
+    "balance": {
+      "outlier_rate": 0.1622,
+      "inlier_rate": 0.1117
+    },
+    "campaign": {
+      "outlier_rate": 0.0525,
+      "inlier_rate": 0.1217
+    }
+  },
+  "spearman_correlation": {
+    "age": {
+      "age": 1.0,
+      "balance": 0.0964,
+      "day": -0.0089,
+      "campaign": 0.0371,
+      "pdays": -0.0175,
+      "previous": -0.0119,
+      "y": -0.0087
+    },
+    "balance": {
+      "age": 0.0964,
+      "balance": 1.0,
+      "day": 0.0013,
+      "campaign": -0.031,
+      "pdays": 0.0697,
+      "previous": 0.0795,
+      "y": 0.1003
+    },
+    "day": {
+      "age": -0.0089,
+      "balance": 0.0013,
+      "day": 1.0,
+      "campaign": 0.1396,
+      "pdays": -0.0922,
+      "previous": -0.0878,
+      "y": -0.0295
+    },
+    "campaign": {
+      "age": 0.0371,
+      "balance": -0.031,
+      "day": 0.1396,
+      "campaign": 1.0,
+      "pdays": -0.1123,
+      "previous": -0.1084,
+      "y": -0.0841
+    },
+    "pdays": {
+      "age": -0.0175,
+      "balance": 0.0697,
+      "day": -0.0922,
+      "campaign": -0.1123,
+      "pdays": 1.0,
+      "previous": 0.9856,
+      "y": 0.1541
+    },
+    "previous": {
+      "age": -0.0119,
+      "balance": 0.0795,
+      "day": -0.0878,
+      "campaign": -0.1084,
+      "pdays": 0.9856,
+      "previous": 1.0,
+      "y": 0.1691
+    },
+    "y": {
+      "age": -0.0087,
+      "balance": 0.1003,
+      "day": -0.0295,
+      "campaign": -0.0841,
+      "pdays": 0.1541,
+      "previous": 0.1691,
+      "y": 1.0
+    }
+  },
+  "strong_correlations": [
+    {
+      "first": "pdays",
+      "second": "previous",
+      "spearman": 0.9856
+    }
+  ],
+  "target_correlation_ranking": [
+    {
+      "column": "previous",
+      "spearman": 0.1691
+    },
+    {
+      "column": "pdays",
+      "spearman": 0.1541
+    },
+    {
+      "column": "balance",
+      "spearman": 0.1003
+    },
+    {
+      "column": "campaign",
+      "spearman": -0.0841
+    },
+    {
+      "column": "day",
+      "spearman": -0.0295
+    },
+    {
+      "column": "age",
+      "spearman": -0.0087
+    }
+  ],
+  "chi_square": {
+    "poutcome": {
+      "chi2": 4391.5066,
+      "p_value": 0.0,
+      "dof": 3,
+      "cramers_v": 0.3117,
+      "low_expected_cells": 0
+    },
+    "month": {
+      "chi2": 3061.8389,
+      "p_value": 0.0,
+      "dof": 11,
+      "cramers_v": 0.2602,
+      "low_expected_cells": 0
+    },
+    "contact": {
+      "chi2": 1035.7142,
+      "p_value": 0.0,
+      "dof": 2,
+      "cramers_v": 0.1514,
+      "low_expected_cells": 0
+    },
+    "housing": {
+      "chi2": 875.6937,
+      "p_value": 0.0,
+      "dof": 1,
+      "cramers_v": 0.1392,
+      "low_expected_cells": 0
+    },
+    "job": {
+      "chi2": 836.1055,
+      "p_value": 0.0,
+      "dof": 11,
+      "cramers_v": 0.136,
+      "low_expected_cells": 0
+    },
+    "education": {
+      "chi2": 238.9235,
+      "p_value": 0.0,
+      "dof": 3,
+      "cramers_v": 0.0727,
+      "low_expected_cells": 0
+    },
+    "loan": {
+      "chi2": 210.1949,
+      "p_value": 0.0,
+      "dof": 1,
+      "cramers_v": 0.0682,
+      "low_expected_cells": 0
+    },
+    "marital": {
+      "chi2": 196.4959,
+      "p_value": 0.0,
+      "dof": 2,
+      "cramers_v": 0.0659,
+      "low_expected_cells": 0
+    },
+    "default": {
+      "chi2": 22.7235,
+      "p_value": 0.0,
+      "dof": 1,
+      "cramers_v": 0.0224,
+      "low_expected_cells": 0
+    }
+  },
+  "mann_whitney": {
+    "previous": {
+      "u_statistic": 127174833.0,
+      "p_value": 0.0,
+      "median_yes": 0.0,
+      "median_no": 0.0,
+      "rank_biserial": 0.2046
+    },
+    "pdays": {
+      "u_statistic": 125257746.5,
+      "p_value": 0.0,
+      "median_yes": -1.0,
+      "median_no": -1.0,
+      "rank_biserial": 0.1864
+    },
+    "balance": {
+      "u_statistic": 124589983.5,
+      "p_value": 0.0,
+      "median_yes": 733.0,
+      "median_no": 417.0,
+      "rank_biserial": 0.1801
+    },
+    "campaign": {
+      "u_statistic": 90300543.5,
+      "p_value": 0.0,
+      "median_yes": 2.0,
+      "median_no": 2.0,
+      "rank_biserial": -0.1447
+    },
+    "day": {
+      "u_statistic": 99974112.0,
+      "p_value": 0.0,
+      "median_yes": 15.0,
+      "median_no": 16.0,
+      "rank_biserial": -0.053
+    },
+    "age": {
+      "u_statistic": 103915109.5,
+      "p_value": 0.0628,
+      "median_yes": 38.0,
+      "median_no": 39.0,
+      "rank_biserial": -0.0157
+    }
+  }
+}

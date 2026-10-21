@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+import sys
 from pathlib import Path
 
 import matplotlib
@@ -11,9 +12,13 @@ import nbformat as nbf
 import numpy as np
 import pandas as pd
 
-from src.data_loader import load_raw
-
 ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from src.data_loader import load_raw
+from src.eda import CROSSTAB_TOTAL_LABEL, PDAYS_CONTACTED_ROW, PDAYS_NOT_CONTACTED_ROW, pdays_poutcome_crosstab
+
 NOTEBOOK_PATH = ROOT / "notebooks" / "01_veri_tanima.ipynb"
 FIGURES_DIR = ROOT / "reports" / "figures"
 REPORTS_DIR = ROOT / "reports" / "haftalik"
@@ -30,7 +35,7 @@ def create_notebook() -> None:
     pdays_minus_one = int((df["pdays"] == -1).sum())
     duplicate_rows = int(df.duplicated().sum())
     duration_by_target = df.groupby("y")["duration"].mean()
-    crosstab = pd.crosstab(df["pdays"] == -1, df["poutcome"], margins=True)
+    crosstab = pdays_poutcome_crosstab(df)
 
     from sklearn.dummy import DummyClassifier
     from sklearn.metrics import accuracy_score, average_precision_score, f1_score, precision_score, recall_score, roc_auc_score
@@ -65,9 +70,9 @@ def create_notebook() -> None:
         "pdays_minus_one_count": pdays_minus_one,
         "pdays_minus_one_pct": round((pdays_minus_one / len(df)) * 100, 4),
         "pdays_poutcome_crosstab": {
-            "pdays_equal_minus_one": {str(k): int(v) for k, v in crosstab.loc[True].to_dict().items()},
-            "pdays_not_minus_one": {str(k): int(v) for k, v in crosstab.loc[False].to_dict().items()},
-            "all": {str(k): int(v) for k, v in crosstab.loc["All"].to_dict().items()},
+            "pdays_equal_minus_one": {str(k): int(v) for k, v in crosstab.loc[PDAYS_NOT_CONTACTED_ROW].to_dict().items()},
+            "pdays_not_minus_one": {str(k): int(v) for k, v in crosstab.loc[PDAYS_CONTACTED_ROW].to_dict().items()},
+            "all": {str(k): int(v) for k, v in crosstab.loc[CROSSTAB_TOTAL_LABEL].to_dict().items()},
         },
         "pdays_minus_one_poutcome_unknown_count": int(((df["pdays"] == -1) & (df["poutcome"] == "unknown")).sum()),
         "pdays_not_minus_one_poutcome_unknown_count": int(((df["pdays"] != -1) & (df["poutcome"] == "unknown")).sum()),
@@ -135,7 +140,14 @@ def create_notebook() -> None:
     nb.cells = [
         nbf.v4.new_markdown_cell("# Bank Marketing Veri Tanıma\n\nBu not defteri hafta 2 için veri setinin ilk incelemesini yapar."),
         nbf.v4.new_code_cell(
+            "import os\n"
+            "import sys\n"
             "from pathlib import Path\n"
+            "\n"
+            "PROJECT_ROOT = Path.cwd().parent if Path.cwd().name == 'notebooks' else Path.cwd()\n"
+            "sys.path.insert(0, str(PROJECT_ROOT))\n"
+            "os.chdir(PROJECT_ROOT)  # sonraki hücreler 'reports/...' gibi proje köküne göreli yollar kullanır\n"
+            "\n"
             "import json\n"
             "import numpy as np\n"
             "import pandas as pd\n"
@@ -191,7 +203,8 @@ def create_notebook() -> None:
             "pdays_minus_one = int((df['pdays'] == -1).sum())\n"
             "duplicate_rows = int(df.duplicated().sum())\n"
             "duration_by_target = df.groupby('y')['duration'].mean()\n"
-            "pdays_poutcome = pd.crosstab(df['pdays'] == -1, df['poutcome'], margins=True)\n"
+            "from src.eda import CROSSTAB_TOTAL_LABEL, PDAYS_CONTACTED_ROW, PDAYS_NOT_CONTACTED_ROW, pdays_poutcome_crosstab\n"
+            "pdays_poutcome = pdays_poutcome_crosstab(df)\n"
             "print('pdays_poutcome:\\n', pdays_poutcome)\n"
             "print('pdays == -1:', pdays_minus_one)\n"
             "print('duplicate rows:', duplicate_rows)\n"
@@ -228,9 +241,9 @@ def create_notebook() -> None:
             "    'pdays_minus_one_count': pdays_minus_one,\n"
             "    'pdays_minus_one_pct': round((pdays_minus_one / len(df)) * 100, 4),\n"
             "    'pdays_poutcome_crosstab': {\n"
-            "        'pdays_equal_minus_one': {str(k): int(v) for k, v in pdays_poutcome.loc[True].to_dict().items()},\n"
-            "        'pdays_not_minus_one': {str(k): int(v) for k, v in pdays_poutcome.loc[False].to_dict().items()},\n"
-            "        'all': {str(k): int(v) for k, v in pdays_poutcome.loc['All'].to_dict().items()},\n"
+            "        'pdays_equal_minus_one': {str(k): int(v) for k, v in pdays_poutcome.loc[PDAYS_NOT_CONTACTED_ROW].to_dict().items()},\n"
+            "        'pdays_not_minus_one': {str(k): int(v) for k, v in pdays_poutcome.loc[PDAYS_CONTACTED_ROW].to_dict().items()},\n"
+            "        'all': {str(k): int(v) for k, v in pdays_poutcome.loc[CROSSTAB_TOTAL_LABEL].to_dict().items()},\n"
             "    },\n"
             "    'pdays_minus_one_poutcome_unknown_count': int(((df['pdays'] == -1) & (df['poutcome'] == 'unknown')).sum()),\n"
             "    'pdays_not_minus_one_poutcome_unknown_count': int(((df['pdays'] != -1) & (df['poutcome'] == 'unknown')).sum()),\n"
@@ -278,7 +291,9 @@ def create_notebook() -> None:
 def execute_notebook() -> None:
     subprocess.run(
         [
-            str(Path(".venv") / "Scripts" / "jupyter.exe"),
+            sys.executable,
+            "-m",
+            "jupyter",
             "nbconvert",
             "--to",
             "notebook",
