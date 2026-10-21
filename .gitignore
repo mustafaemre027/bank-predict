@@ -8,3 +8,4 @@ data/processed/*
 # Haftalik raporlar repoya yuklenmez
 reports/haftalik/*.md
 reports/haftalik/*.pdf
+reports/haftalik/*.docx
