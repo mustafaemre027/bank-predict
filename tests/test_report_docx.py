@@ -7,6 +7,7 @@ from docx import Document
 from reports.hafta3_rapor import (
     SUMMARY_PATH,
     build_report,
+    describe_age_test,
     describe_chi_square_significance,
     describe_mann_whitney,
     describe_strong_pairs,
@@ -189,3 +190,11 @@ def test_chi_square_text_names_variables_that_are_not_significant() -> None:
 
 def test_strong_pair_text_handles_absence_of_strong_correlations() -> None:
     assert "bulunmamıştır" in describe_strong_pairs([])
+
+
+def test_age_note_appears_only_when_age_difference_is_not_significant() -> None:
+    not_significant = {"age": {"p_value": 0.063, "median_yes": 38, "median_no": 39}}
+    significant = {"age": {"p_value": 0.001, "median_yes": 38, "median_no": 45}}
+
+    assert "(38 ve 39)" in describe_age_test(not_significant)
+    assert describe_age_test(significant) == ""
