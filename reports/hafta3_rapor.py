@@ -22,6 +22,7 @@ from docx.shared import Cm
 from src.formatting import format_number, format_p_value, format_percent
 from src.report_docx import (
     CAPTAIN_ROLE,
+    FIGURE_WIDTH,
     TEAM,
     TEAM_PROCESS_CRITERIA,
     WeeklyReport,
@@ -37,6 +38,29 @@ CAPTAIN_DUTY = "Takım kaptanlığı ve haftalık raporun hazırlanması"
 SUMMARY_PATH = ROOT / "reports" / "haftalik" / "hafta3_ozet.json"
 FIGURES_DIR = ROOT / "reports" / "figures"
 OUTPUT_DIR = ROOT / "reports" / "haftalik"
+FIGURES = {
+    "poutcome_contact_education": ("h3_kabul_poutcome_contact_education.png", "Önceki kampanya sonucu, iletişim türü ve eğitim düzeyine göre kabul oranları", Cm(13)),
+    "month": ("h3_kabul_ay.png", "Son iletişim ayına göre kabul oranları", Cm(14)),
+    "job": ("h3_kabul_meslek.png", "Mesleğe göre kabul oranları", Cm(14)),
+    "age": ("h3_kabul_yas.png", "Yaş grubuna göre kabul oranları", Cm(14)),
+    "campaign": ("h3_kabul_campaign.png", "Bu kampanyadaki arama sayısına göre kabul oranları", Cm(14)),
+    "distributions": (
+        "h3_sayisal_dagilimlar.png",
+        "Kabul eden ve etmeyen müşterilerde sayısal değişkenlerin normalize dağılımları (balance ve campaign için en uç %1'lik kuyruklar görselden çıkarılmıştır)",
+        FIGURE_WIDTH,
+    ),
+    "correlation": ("h3_korelasyon.png", "Sayısal değişkenler ve hedef değişken arasındaki Spearman korelasyon matrisi", Cm(12)),
+    "effect_sizes": ("h3_etki_buyuklukleri.png", "Değişkenlerin hedefle ilişkisinin etki büyüklükleri", FIGURE_WIDTH),
+}
+PREPROCESSING_DECISIONS = [
+    ["unknown değerler", "Silinmez. Ayrı bir kategori olarak One-Hot Encoding ile kodlanır."],
+    ["Aykırı değerler", "Silinmez. Hedefle ilgili bilgi taşıdıkları için etkileri logaritmik dönüşümle azaltılır."],
+    ["pdays = -1", "was_contacted_before adında yeni bir ikili özellik eklenir. Daha önce aranmamış müşterilerde pdays 0 yapılır."],
+    ["age", "Sayısal değerin yanında yaş grubu özelliği de denenir."],
+    ["balance, campaign, previous", "Lojistik Regresyon için log dönüşümü ve standartlaştırma uygulanır. Ağaç modellerinde ham değer kullanılır."],
+    ["İkili değişkenler", "default, housing ve loan 0/1 olarak kodlanır."],
+    ["Değişken seçimi", "Bu aşamada değişken çıkarılmaz. Karar etki büyüklüklerine ve çapraz doğrulama sonuçlarına göre verilecek."],
+]
 
 # Kriterler 2. hafta raporunun "Gelecek Hafta Planı" tablosunda bu hafta için verilen görevlerden türetilmiştir.
 PROGRESS_CRITERIA = [
@@ -116,6 +140,65 @@ def count(summary: Summary, column: str, category: str) -> str:
 
 def decimal(value: float, digits: int = 3) -> str:
     return format_number(value, digits)
+
+
+def add_named_figure(report: WeeklyReport, key: str) -> None:
+    file_name, caption, width = FIGURES[key]
+    report.add_figure(FIGURES_DIR / file_name, caption, width=width)
+
+
+def add_descriptive_table(report: WeeklyReport, summary: Summary) -> None:
+    report.add_table(
+        "Sayısal değişkenlerin betimsel istatistikleri",
+        ["Değişken", "Ortalama", "Medyan", "Std. sapma", "En küçük", "En büyük", "Çarpıklık"],
+        [
+            [column, decimal(values["mean"], 2), decimal(values["50%"], 0), decimal(values["std"], 2),
+             decimal(values["min"], 0), decimal(values["max"], 0), decimal(values["skewness"], 2)]
+            for column, values in summary["numeric_summary"].items()
+        ],
+    )
+
+
+def add_outlier_table(report: WeeklyReport, summary: Summary) -> None:
+    report.add_table(
+        "IQR yöntemiyle aykırı değerler",
+        ["Değişken", "Alt sınır", "Üst sınır", "Aykırı sayısı", "Aykırı oranı"],
+        [
+            [column, decimal(values["lower_bound"], 1), decimal(values["upper_bound"], 1), format_number(values["outlier_count"]),
+             format_percent(values["outlier_pct"] / 100)]
+            for column, values in summary["iqr_outliers"].items()
+        ] + [
+            [f"{column} (yalnızca aranmışlar)", decimal(values["lower_bound"], 1), decimal(values["upper_bound"], 1),
+             format_number(values["outlier_count"]), format_percent(values["outlier_pct"] / 100)]
+            for column, values in summary["iqr_outliers_contacted_only"].items()
+        ],
+    )
+
+
+def add_chi_square_table(report: WeeklyReport, summary: Summary) -> None:
+    report.add_table(
+        "Kategorik değişkenler için ki-kare bağımsızlık testi (Cramér's V'ye göre sıralı)",
+        ["Değişken", "χ²", "Serbestlik derecesi", "p-değeri", "Cramér's V"],
+        [
+            [column, decimal(values["chi2"], 1), format_number(values["dof"]), format_p_value(values["p_value"]), decimal(values["cramers_v"], 3)]
+            for column, values in summary["chi_square"].items()
+        ],
+    )
+
+
+def add_mann_whitney_table(report: WeeklyReport, summary: Summary) -> None:
+    report.add_table(
+        "Sayısal değişkenler için Mann-Whitney U testi (etki büyüklüğüne göre sıralı)",
+        ["Değişken", "Medyan (kabul eden)", "Medyan (etmeyen)", "p-değeri", "Rank-biserial r"],
+        [
+            [column, decimal(values["median_yes"], 0), decimal(values["median_no"], 0), format_p_value(values["p_value"]), decimal(values["rank_biserial"], 3)]
+            for column, values in summary["mann_whitney"].items()
+        ],
+    )
+
+
+def add_preprocessing_table(report: WeeklyReport) -> None:
+    report.add_table("Ön işleme kararlarının özeti", ["Konu", "Karar"], PREPROCESSING_DECISIONS, [4.5, 11.5])
 
 
 def add_introduction(report: WeeklyReport, summary: Summary) -> None:
@@ -217,7 +300,7 @@ def add_categorical_findings(report: WeeklyReport, summary: Summary) -> None:
         f"düzeyine bakıldığında yükseköğretim mezunlarının kabul oranı ({rate(summary, 'education', 'tertiary')}) ilköğretim "
         f"mezunlarından ({rate(summary, 'education', 'primary')}) daha yüksek."
     )
-    report.add_figure(FIGURES_DIR / "h3_kabul_poutcome_contact_education.png", "Önceki kampanya sonucu, iletişim türü ve eğitim düzeyine göre kabul oranları", width=Cm(13))
+    add_named_figure(report, "poutcome_contact_education")
     report.add_paragraph(
         "Aylara göre kabul oranları arasında büyük farklar var. Mart "
         f"({rate(summary, 'month', 'mar')}), eylül ({rate(summary, 'month', 'sep')}), ekim ({rate(summary, 'month', 'oct')}) ve "
@@ -226,7 +309,7 @@ def add_categorical_findings(report: WeeklyReport, summary: Summary) -> None:
         f"arama) ise kabul oranı en düşük seviyede ({rate(summary, 'month', 'may')}). Az arama yapılan aylardaki yüksek oranlara "
         "güvenmek zor. Modelin bu aylara fazla bağlanıp bağlanmadığını çapraz doğrulamada kontrol edeceğiz."
     )
-    report.add_figure(FIGURES_DIR / "h3_kabul_ay.png", "Son iletişim ayına göre kabul oranları", width=Cm(14))
+    add_named_figure(report, "month")
     report.add_paragraph(
         f"Meslekler arasında en yüksek kabul oranı öğrencilerde ({rate(summary, 'job', 'student')}) ve emeklilerde "
         f"({rate(summary, 'job', 'retired')}), en düşük oran ise mavi yakalılarda ({rate(summary, 'job', 'blue-collar')}) görüldü. "
@@ -234,7 +317,7 @@ def add_categorical_findings(report: WeeklyReport, summary: Summary) -> None:
         f"{rate(summary, 'housing', 'yes')}. Bireysel kredisi olanlarda oran {rate(summary, 'loan', 'yes')} ile genel oranın altında "
         f"kalırken bekârlarda {rate(summary, 'marital', 'single')} ile genel oranın üstünde."
     )
-    report.add_figure(FIGURES_DIR / "h3_kabul_meslek.png", "Mesleğe göre kabul oranları", width=Cm(14))
+    add_named_figure(report, "job")
 
 
 def add_age_campaign_findings(report: WeeklyReport, summary: Summary) -> None:
@@ -250,7 +333,7 @@ def add_age_campaign_findings(report: WeeklyReport, summary: Summary) -> None:
         "uyumlu, çünkü öğrenciler ve emekliler bu iki uçta yer alıyor. Lojistik Regresyon yaşı tek bir sayı olarak kullandığında "
         "bu şekli yakalayamaz. Bu yüzden dördüncü haftada yaşı gruplara ayıran bir özellik de deneyeceğiz."
     )
-    report.add_figure(FIGURES_DIR / "h3_kabul_yas.png", "Yaş grubuna göre kabul oranları", width=Cm(14))
+    add_named_figure(report, "age")
     report.add_paragraph(
         "Bu kampanyada bir müşteri ne kadar çok arandıysa kabul oranı genel olarak o kadar düştü. Bir kez aranan müşterilerde oran "
         f"{format_percent(campaigns['1']['acceptance_rate'])} iken 11 ve daha fazla aranan müşterilerde "
@@ -258,7 +341,7 @@ def add_age_campaign_findings(report: WeeklyReport, summary: Summary) -> None:
         f"{format_number(contacted['contacted_count'])} müşterinin kabul oranı {format_percent(contacted['contacted'])}, hiç "
         f"aranmamış müşterilerin ise {format_percent(contacted['not_contacted'])}."
     )
-    report.add_figure(FIGURES_DIR / "h3_kabul_campaign.png", "Bu kampanyadaki arama sayısına göre kabul oranları", width=Cm(14))
+    add_named_figure(report, "campaign")
 
 
 def add_numeric_findings(report: WeeklyReport, summary: Summary) -> None:
@@ -267,34 +350,14 @@ def add_numeric_findings(report: WeeklyReport, summary: Summary) -> None:
     contacted_outliers = summary["iqr_outliers_contacted_only"]
     outlier_rates = summary["outlier_acceptance"]
     report.add_heading("4.3. Sayısal Değişkenlerin Dağılımı ve Aykırı Değerler")
-    report.add_table(
-        "Sayısal değişkenlerin betimsel istatistikleri",
-        ["Değişken", "Ortalama", "Medyan", "Std. sapma", "En küçük", "En büyük", "Çarpıklık"],
-        [
-            [column, decimal(values["mean"], 2), decimal(values["50%"], 0), decimal(values["std"], 2),
-             decimal(values["min"], 0), decimal(values["max"], 0), decimal(values["skewness"], 2)]
-            for column, values in stats.items()
-        ],
-    )
+    add_descriptive_table(report, summary)
     report.add_paragraph(
         f"balance (çarpıklık {decimal(stats['balance']['skewness'], 2)}), campaign ({decimal(stats['campaign']['skewness'], 2)}) ve "
         f"previous ({decimal(stats['previous']['skewness'], 2)}) değişkenleri sağa çok çarpık ve ortalamaları medyanlarının "
         "üstünde. Lojistik Regresyon için bu değişkenlere logaritmik dönüşüm uygulayacağız. Ağaç tabanlı modeller bu tür "
         "çarpıklıktan etkilenmediği için orada ham değerler kullanılabilir."
     )
-    report.add_table(
-        "IQR yöntemiyle aykırı değerler",
-        ["Değişken", "Alt sınır", "Üst sınır", "Aykırı sayısı", "Aykırı oranı"],
-        [
-            [column, decimal(values["lower_bound"], 1), decimal(values["upper_bound"], 1), format_number(values["outlier_count"]),
-             format_percent(values["outlier_pct"] / 100)]
-            for column, values in outliers.items()
-        ] + [
-            [f"{column} (yalnızca aranmışlar)", decimal(values["lower_bound"], 1), decimal(values["upper_bound"], 1),
-             format_number(values["outlier_count"]), format_percent(values["outlier_pct"] / 100)]
-            for column, values in contacted_outliers.items()
-        ],
-    )
+    add_outlier_table(report, summary)
     report.add_paragraph(
         "Aykırı değerleri silip silmeyeceğimize karar vermek için önce bu kayıtların kabul oranlarına baktık. balance değişkeninde "
         f"aykırı kayıtların kabul oranı {format_percent(outlier_rates['balance']['outlier_rate'])}, diğer kayıtların "
@@ -305,10 +368,7 @@ def add_numeric_findings(report: WeeklyReport, summary: Summary) -> None:
         f"({format_percent(outliers['previous']['outlier_pct'] / 100)}). Bu yüzden bu değişkende IQR yöntemini yalnızca daha önce "
         f"aranmış müşteriler arasında uyguladık ve aykırı oranı {format_percent(contacted_outliers['previous']['outlier_pct'] / 100)} çıktı."
     )
-    report.add_figure(
-        FIGURES_DIR / "h3_sayisal_dagilimlar.png",
-        "Kabul eden ve etmeyen müşterilerde sayısal değişkenlerin normalize dağılımları (balance ve campaign için en uç %1'lik kuyruklar görselden çıkarılmıştır)",
-    )
+    add_named_figure(report, "distributions")
 
 
 def join_names(names: list[str]) -> str:
@@ -348,7 +408,7 @@ def add_correlation_findings(report: WeeklyReport, summary: Summary) -> None:
         f"{describe_strong_pairs(summary['strong_correlations'])} Hedef değişkenle mutlak değerce en yüksek korelasyonu "
         f"gösteren değişkenler {top_text}. {age_text}"
     )
-    report.add_figure(FIGURES_DIR / "h3_korelasyon.png", "Sayısal değişkenler ve hedef değişken arasındaki Spearman korelasyon matrisi", width=Cm(12))
+    add_named_figure(report, "correlation")
 
 
 def describe_chi_square_significance(chi_square: dict[str, Any]) -> str:
@@ -393,14 +453,7 @@ def add_statistical_tests(report: WeeklyReport, summary: Summary) -> None:
     chi_square = summary["chi_square"]
     mann_whitney = summary["mann_whitney"]
     report.add_heading("4.5. İstatistiksel Testler")
-    report.add_table(
-        "Kategorik değişkenler için ki-kare bağımsızlık testi (Cramér's V'ye göre sıralı)",
-        ["Değişken", "χ²", "Serbestlik derecesi", "p-değeri", "Cramér's V"],
-        [
-            [column, decimal(values["chi2"], 1), format_number(values["dof"]), format_p_value(values["p_value"]), decimal(values["cramers_v"], 3)]
-            for column, values in chi_square.items()
-        ],
-    )
+    add_chi_square_table(report, summary)
     low_expected = sum(values["low_expected_cells"] for values in chi_square.values())
     low_expected_text = (
         "Beklenen frekansı 5'in altında kalan hücre olmadığı için testin koşulu da sağlanıyor."
@@ -415,20 +468,13 @@ def add_statistical_tests(report: WeeklyReport, summary: Summary) -> None:
         f"ve {second} (V = {decimal(chi_square[second]['cramers_v'], 3)}) değişkenlerinde, en zayıf ilişki ise {weakest} "
         f"(V = {decimal(chi_square[weakest]['cramers_v'], 3)}) değişkeninde görüldü."
     )
-    report.add_table(
-        "Sayısal değişkenler için Mann-Whitney U testi (etki büyüklüğüne göre sıralı)",
-        ["Değişken", "Medyan (kabul eden)", "Medyan (etmeyen)", "p-değeri", "Rank-biserial r"],
-        [
-            [column, decimal(values["median_yes"], 0), decimal(values["median_no"], 0), format_p_value(values["p_value"]), decimal(values["rank_biserial"], 3)]
-            for column, values in mann_whitney.items()
-        ],
-    )
+    add_mann_whitney_table(report, summary)
     report.add_paragraph(
         "Rank-biserial r pozitifse kabul eden müşterilerde o değişkenin değerleri daha yüksek, negatifse daha düşük demektir. "
         f"{describe_mann_whitney(mann_whitney)}{describe_age_test(mann_whitney)} Bu aşamada hiçbir değişkeni elemedik. Hangi "
         "değişkenin modele ne kadar katkı verdiğine çapraz doğrulama ve permutation importance ile bakacağız."
     )
-    report.add_figure(FIGURES_DIR / "h3_etki_buyuklukleri.png", "Değişkenlerin hedefle ilişkisinin etki büyüklükleri")
+    add_named_figure(report, "effect_sizes")
 
 
 def add_preprocessing_decisions(report: WeeklyReport) -> None:
@@ -438,20 +484,7 @@ def add_preprocessing_decisions(report: WeeklyReport) -> None:
         "hâli proje deposundaki docs/on_isleme_kararlari.md dosyasında bulunuyor. Bütün dönüşümler yalnızca eğitim verisi üzerinde "
         "öğrenilecek, test verisine son değerlendirmeye kadar dokunulmayacak."
     )
-    report.add_table(
-        "Ön işleme kararlarının özeti",
-        ["Konu", "Karar"],
-        [
-            ["unknown değerler", "Silinmez. Ayrı bir kategori olarak One-Hot Encoding ile kodlanır."],
-            ["Aykırı değerler", "Silinmez. Hedefle ilgili bilgi taşıdıkları için etkileri logaritmik dönüşümle azaltılır."],
-            ["pdays = -1", "was_contacted_before adında yeni bir ikili özellik eklenir. Daha önce aranmamış müşterilerde pdays 0 yapılır."],
-            ["age", "Sayısal değerin yanında yaş grubu özelliği de denenir."],
-            ["balance, campaign, previous", "Lojistik Regresyon için log dönüşümü ve standartlaştırma uygulanır. Ağaç modellerinde ham değer kullanılır."],
-            ["İkili değişkenler", "default, housing ve loan 0/1 olarak kodlanır."],
-            ["Değişken seçimi", "Bu aşamada değişken çıkarılmaz. Karar etki büyüklüklerine ve çapraz doğrulama sonuçlarına göre verilecek."],
-        ],
-        [4.5, 11.5],
-    )
+    add_preprocessing_table(report)
 
 
 def add_documents(report: WeeklyReport) -> None:
