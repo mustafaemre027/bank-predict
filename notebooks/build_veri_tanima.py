@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+import sys
 from pathlib import Path
 
 import matplotlib
@@ -278,7 +279,9 @@ def create_notebook() -> None:
 def execute_notebook() -> None:
     subprocess.run(
         [
-            str(Path(".venv") / "Scripts" / "jupyter.exe"),
+            sys.executable,
+            "-m",
+            "jupyter",
             "nbconvert",
             "--to",
             "notebook",
