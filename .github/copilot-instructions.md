@@ -15,8 +15,9 @@
 - Proje: Banka Pazarlama Kampanyalarına Müşteri Yanıtının Tahmini
 - Hedef değişken: `y` (`yes` / `no`)
 - Takım adı: BankTech
-- Takım kaptanı: Ömer NARÇİÇEĞİ (230260054) – Makine Öğrenmesi Geliştirici
-- Üyeler: Mesut ASLAN (230260173), Mustafa Emre KAPLAN (230260143)
+- Üyeler: Ömer NARÇİÇEĞİ (230260054), Mesut ASLAN (230260173), Mustafa Emre KAPLAN (230260143)
+- Takım kaptanı haftalık değişir: rotasyon `docs/yol_haritasi.md` içindedir; koda veya belgelere sabit kaptan adı yazılmaz.
+- Kapsam, gereksinimler ve plan: `docs/prd.md`, `docs/gereksinim_analizi.md`, `docs/yol_haritasi.md`
 - Veri kaynağı: UCI Machine Learning Repository – Bank Marketing (Moro, Cortez & Rita, 2014)
 - Amaç: müşteri yanıtını tahmin etmek için ikili sınıflandırma modeli geliştirmek.
 
