@@ -258,7 +258,7 @@ class WeeklyReport:
 
     def add_figure(self, image_path: Path, caption: str, width: Cm = FIGURE_WIDTH) -> None:
         if not image_path.exists():
-            raise FileNotFoundError(f"Şekil bulunamadı: '{image_path}'. Önce notebooks/build_kesifsel_analiz.py çalıştırılmalı.")
+            raise FileNotFoundError(f"Şekil bulunamadı: '{image_path}'. Önce haftanın analiz betiği (notebooks/build_*.py) çalıştırılmalı.")
         self._figure_number += 1
         picture_paragraph = self.document.add_paragraph()
         picture_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
