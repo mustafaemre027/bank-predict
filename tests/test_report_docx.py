@@ -111,7 +111,7 @@ def test_tables_and_figures_are_numbered_in_order(tmp_path) -> None:
 def test_add_figure_fails_clearly_when_image_is_missing(tmp_path) -> None:
     report = WeeklyReport(week=3, captain_id=CAPTAIN_ID)
 
-    with pytest.raises(FileNotFoundError, match="build_kesifsel_analiz"):
+    with pytest.raises(FileNotFoundError, match="analiz betiği"):
         report.add_figure(tmp_path / "yok.png", "Eksik")
 
 
