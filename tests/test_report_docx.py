@@ -12,6 +12,7 @@ from reports.hafta3_rapor import (
     describe_mann_whitney,
     describe_strong_pairs,
 )
+from reports.hafta3_rapor_kisa import build_short_report, short_file_name
 from src.formatting import format_number, format_p_value, format_percent
 from src.report_docx import TEAM, WeeklyReport, find_member, report_file_name
 
@@ -198,3 +199,39 @@ def test_age_note_appears_only_when_age_difference_is_not_significant() -> None:
 
     assert "(38 ve 39)" in describe_age_test(not_significant)
     assert describe_age_test(significant) == ""
+
+
+@pytest.fixture(scope="module")
+def short_document(tmp_path_factory):
+    summary = json.loads(SUMMARY_PATH.read_text(encoding="utf-8"))
+    path = build_short_report(summary, CAPTAIN_ID).save(tmp_path_factory.mktemp("kisa") / "hafta3_kisa.docx")
+    return Document(str(path)), summary
+
+
+def test_short_report_keeps_sections_figures_and_summary_numbers(short_document) -> None:
+    document, summary = short_document
+
+    text = document_text(document)
+
+    assert [heading for heading in MAIN_HEADINGS if heading not in text] == []
+    assert len(document.inline_shapes) == 8
+    assert format_percent(summary["acceptance_rates"]["poutcome"]["success"]["acceptance_rate"]) in text
+    assert format_number(summary["chi_square"]["poutcome"]["cramers_v"], 3) in text
+
+
+def test_short_report_is_shorter_than_full_report(week3_document, short_document) -> None:
+    full_words = len(document_text(week3_document[0]).split())
+    short_words = len(document_text(short_document[0]).split())
+
+    assert short_words < full_words
+
+
+def test_short_report_lists_only_cited_references(short_document) -> None:
+    text = document_text(short_document[0])
+
+    assert all(author not in text for author in ["Wirth", "Cochran", "Kerby"])
+    assert all(author in text for author in ["Spearman, C.", "Cramér, H.", "Mann, H. B."])
+
+
+def test_short_report_file_name_is_marked_as_short() -> None:
+    assert short_file_name() == "230260054_230260143_230260173_hafta3_kisa.docx"
