@@ -10,7 +10,7 @@
 | 1 | 7 Eki | İş anlama | Problem tanımı, iş paketleri, sorumlular | ✓ |
 | 2 | 14 Eki | Veri anlama | Altyapı, veri temini ve doğrulama, ön inceleme, referans model | ✓ |
 | 3 | 21 Eki | Veri anlama | Keşifsel analiz, istatistiksel testler, ön işleme taslağı, PRD + GA v2 + yol haritası | ✓ |
-| 4 | 28 Eki | Veri hazırlama | Ön işleme pipeline'ı + ilk Lojistik Regresyon (CV) | ○ |
+| 4 | 28 Eki | Veri hazırlama | Ön işleme pipeline'ı + ilk Lojistik Regresyon (CV) | ✓ |
 | 5 | 4 Kas | Modelleme | RF ve XGBoost; üç modelin CV karşılaştırması | ○ |
 | 6 | 11 Kas | Modelleme | Sınıf dengesizliği stratejileri ve eşik seçimi | ○ |
 | 7 | 18 Kas | Modelleme | Hiperparametre optimizasyonu ve kalibrasyon kontrolü | ○ |
@@ -27,7 +27,7 @@ gantt
     Veri temini ve ön inceleme   :done, h2, after h1, 7d
     Keşifsel analiz              :done, h3, after h2, 7d
     section Hazırlama ve Modelleme
-    Ön işleme + LR               :h4, after h3, 7d
+    Ön işleme + LR               :done, h4, after h3, 7d
     RF + XGBoost                 :h5, after h4, 7d
     Dengesizlik + eşik           :h6, after h5, 7d
     Hiperparametre               :h7, after h6, 7d
@@ -46,8 +46,8 @@ Kaptan haftalık değişebilir. Ekip bilgisi koda sabitlenmez; rapor üreticiye 
 | 1 | Ömer NARÇİÇEĞİ (230260054) | |
 | 2 | Mustafa Emre KAPLAN (230260143) | |
 | 3 | Ömer NARÇİÇEĞİ (230260054) | |
-| 4 | Belirlenecek | Mesut ASLAN henüz kaptanlık yapmadı |
-| 5-10 | Belirlenecek | Her hafta başında bu tabloya yazılır |
+| 4 | Ömer NARÇİÇEĞİ (230260054) | |
+| 5-10 | Belirlenecek | Her hafta başında bu tabloya yazılır. Mesut ASLAN henüz kaptanlık yapmadı. |
 
 ### Kaptanın haftalık kontrol listesi
 
@@ -86,7 +86,7 @@ GitHub deposu ve Python ortamı kuruldu. `bank-full.csv` indirilip testlerle do�
   - Haftalık rapor (.docx)
 - **Bitti tanımı:** Testler yeşil; rapordaki tüm sayılar özet JSON'dan geliyor; ön işleme taslağı Hafta 4 için uygulanabilir.
 
-### Hafta 4 — Ön İşleme Pipeline'ı ve İlk Model
+### Hafta 4 — Ön İşleme Pipeline'ı ve İlk Model ✓
 
 | Üye | Görev |
 |---|---|
@@ -107,6 +107,7 @@ GitHub deposu ve Python ortamı kuruldu. `bank-full.csv` indirilip testlerle do�
   - Model referans modelle karşılaştırıldı
 - **Bitti tanımı:** Ön işleme kararlarının tamamı kodda karşılık buluyor (FG-2, FG-3, FG-4 bölme kısmı); `duration` yok testi geçiyor; LR CV PR-AUC değeri raporlandı.
 - **Hafta 3'ten açık sorular:** Yaş grubu LR'yi iyileştiriyor mu? Az gözlemli aylar birleştirilmeli mi?
+- **Sonuç:** Lojistik Regresyon 5 katlı CV'de PR-AUC 0,409 ± 0,011, ROC-AUC 0,770 ± 0,004 (referans model 0,117 ve 0,500). Yaş grubu küçük bir iyileşme sağladığı için tutuldu, az gözlemli aylar birleştirilmedi. Sayılar `reports/haftalik/hafta4_ozet.json` dosyasından.
 
 ### Hafta 5 — Rastgele Orman ve XGBoost
 
