@@ -19,7 +19,7 @@ if str(ROOT) not in sys.path:
 
 from docx.shared import Cm
 
-from src.formatting import format_number, format_p_value, format_percent
+from src.formatting import format_number, format_p_value, format_percent, join_names
 from src.report_docx import (
     CAPTAIN_ROLE,
     TEAM,
@@ -309,12 +309,6 @@ def add_numeric_findings(report: WeeklyReport, summary: Summary) -> None:
         FIGURES_DIR / "h3_sayisal_dagilimlar.png",
         "Kabul eden ve etmeyen müşterilerde sayısal değişkenlerin normalize dağılımları (balance ve campaign için en uç %1'lik kuyruklar görselden çıkarılmıştır)",
     )
-
-
-def join_names(names: list[str]) -> str:
-    if len(names) <= 1:
-        return "".join(names)
-    return f"{', '.join(names[:-1])} ve {names[-1]}"
 
 
 def describe_strong_pairs(pairs: list[dict[str, Any]]) -> str:

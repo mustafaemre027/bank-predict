@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from src.config import CATEGORICAL_FEATURES, NOT_PREVIOUSLY_CONTACTED, NUMERIC_FEATURES, TARGET
+from src.config import AGE_BINS, AGE_LABELS, CATEGORICAL_FEATURES, MONTH_ORDER, NOT_PREVIOUSLY_CONTACTED, NUMERIC_FEATURES, TARGET
 from src.data_loader import load_raw, validate_raw
 from src.eda import (
     POSITIVE_LABEL,
@@ -45,10 +45,7 @@ NOTEBOOK_PATH = ROOT / "notebooks" / "02_kesifsel_analiz.ipynb"
 FIGURES_DIR = ROOT / "reports" / "figures"
 SUMMARY_PATH = ROOT / "reports" / "haftalik" / "hafta3_ozet.json"
 
-MONTH_ORDER = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
 # Uç aralıklar açık uçludur; böylece beklenmeyen bir değer hiçbir aralığın dışında kalıp sessizce kaybolmaz.
-AGE_BINS = [-np.inf, 25, 30, 40, 50, 60, np.inf]
-AGE_LABELS = ["18-25", "26-30", "31-40", "41-50", "51-60", "61+"]
 CAMPAIGN_BINS = [-np.inf, 1, 2, 3, 4, 5, 10, np.inf]
 CAMPAIGN_LABELS = ["1", "2", "3", "4", "5", "6-10", "11+"]
 OUTLIER_COLUMNS = ["age", "balance", "campaign", "previous"]
