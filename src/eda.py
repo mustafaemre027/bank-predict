@@ -4,9 +4,8 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-from src.config import NOT_PREVIOUSLY_CONTACTED, TARGET
+from src.config import NOT_PREVIOUSLY_CONTACTED, POSITIVE_LABEL, TARGET
 
-POSITIVE_LABEL = "yes"
 IQR_MULTIPLIER = 1.5
 # Ki-kare testinin güvenilirliği için beklenen frekansların en az 5 olması önerilir (Cochran kuralı).
 MIN_EXPECTED_FREQUENCY = 5
