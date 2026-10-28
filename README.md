@@ -72,8 +72,12 @@ python notebooks/build_kesifsel_analiz.py
 
 # Hafta 3 raporu (.docx); --kaptan o haftanın kaptanının öğrenci numarası
 python reports/hafta3_rapor.py --kaptan 230260054
+
+# Hafta 4 ön işleme + ilk Lojistik Regresyon (5 katlı CV): özet JSON, PR/ROC grafiği ve notebook
+python notebooks/build_ilk_model.py
+python reports/hafta4_rapor.py --kaptan 230260054
 ```
-Rapor `reports/haftalik/` altına yazılır ve repoya eklenmez. Rapordaki tüm sayılar `reports/haftalik/hafta3_ozet.json` dosyasından okunur.
+Rapor `reports/haftalik/` altına yazılır ve repoya eklenmez. Rapordaki tüm sayılar o haftanın `reports/haftalik/haftaN_ozet.json` dosyasından okunur.
 
 ## Haftalık İlerleme
 | Hafta | Durum |
@@ -81,7 +85,7 @@ Rapor `reports/haftalik/` altına yazılır ve repoya eklenmez. Rapordaki tüm s
 | H1 | ✓ |
 | H2 | ✓ |
 | H3 | ✓ |
-| H4 | Planlandı |
+| H4 | ✓ |
 | H5 | Planlandı |
 | H6 | Planlandı |
 | H7 | Planlandı |
