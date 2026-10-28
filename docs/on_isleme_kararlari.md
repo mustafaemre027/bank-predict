@@ -1,6 +1,7 @@
 # Ön İşleme Karar Taslağı (Hafta 3 → Hafta 4)
 
-> Hazırlayan: Ömer NARÇİÇEĞİ · Durum: **Taslak**, Hafta 4 başında ekipçe onaylanacak.
+> Hazırlayan: Ömer NARÇİÇEĞİ · Durum: **Lojistik Regresyon dalı Hafta 4'te kodlandı** (`src/preprocessing.py`, testleri `tests/test_preprocessing.py`). Ağaç modelleri için ölçeklemesiz dal Hafta 5'te eklenecek.
+> Hafta 4 sonuçları `notebooks/build_ilk_model.py` ile üretilen `reports/haftalik/hafta4_ozet.json` dosyasındadır.
 > Bu belgedeki tüm sayılar `notebooks/build_kesifsel_analiz.py` ile üretilen `reports/haftalik/hafta3_ozet.json` dosyasından alınmıştır.
 
 ## Değişmeyen ilkeler
@@ -36,5 +37,8 @@
 ## Hafta 4'te doğrulanacak açık sorular
 
 1. Yaş grubu özelliği LR'nin PR-AUC değerini CV'de iyileştiriyor mu?
+   **Hafta 4 sonucu:** Küçük bir iyileşme var. PR-AUC ortalama 0,0032 arttı ve 5 katmanın 4'ünde yükseldi, fakat fark katmanlar arası standart sapmanın (0,0052) altında. Özellik modelde tutuldu. Hafta 5 ablasyonunda ağaç modelleriyle birlikte tekrar bakılacak.
 2. `contact = unknown` ile `month` birlikteliği modelde "dönem etkisi" yaratıyor mu? (Hafta 8 hata analizine taşınabilir.)
+   **Durum:** Hafta 8 hata analizine taşındı.
 3. Az gözlemli aylar (aralık, n = 214) için kategori birleştirme gerekli mi?
+   **Hafta 4 sonucu:** Gerekli değil. Eğitim verisindeki payı %2'nin altında kalan aralık, mart, ekim ve eylül tek kategoride birleştirildiğinde PR-AUC ortalama 0,0008 düştü ve yalnızca 1 katmanda yükseldi. Aylar ayrı kategoriler olarak kalıyor.
