@@ -71,7 +71,7 @@ flowchart LR
 | FG-2 | `unknown` değerler ayrı kategori olarak ele alınmalı; kategorik değişkenler One-Hot, sayısal değişkenler (LR için) dönüştürülüp standartlaştırılmalıdır. | M | Pipeline çıktısında `unknown` kategorileri ayrı sütun; eğitimde görülmeyen kategori hata vermez | Birim testi | 4 | ✓ (H4, `src/preprocessing.py`) |
 | FG-3 | `duration` değişkeni modele girmeden önce veriden çıkarılmalıdır. | M | Model girdisinde `duration` sütunu yok | Birim testi | 2-4 | ✓ (H4, bölme fonksiyonu + test) |
 | FG-4 | Veri katmanlı olarak %80/%20 bölünmeli; SMOTE, sınıf ağırlıklandırma ve eşik ayarlama denenmeli, SMOTE yalnızca eğitim katmanlarına uygulanmalıdır. | M | Bölmede sınıf oranı ±0,5 puan içinde korunur; SMOTE doğrulama katmanının boyutunu değiştirmez | Birim testi | 4-6 | ✓ (katmanlı bölme H4, stratejiler ve SMOTE testi H6) |
-| FG-5 | LR, RF ve XGBoost modelleri eğitilmeli, hiperparametre optimizasyonu çapraz doğrulama ile yapılmalıdır. | M | Üç model için 5 katlı CV sonuçları; arama PR-AUC'ye göre | CV raporu | 5-7 | ◐ (H5: üç model 5 katlı CV'de eğitildi, arama H7) |
+| FG-5 | LR, RF ve XGBoost modelleri eğitilmeli, hiperparametre optimizasyonu çapraz doğrulama ile yapılmalıdır. | M | Üç model için 5 katlı CV sonuçları; arama PR-AUC'ye göre | CV raporu | 5-7 | ✓ (H5: üç model 5 katlı CV'de eğitildi, H7: iki model için rastgele arama PR-AUC'ye göre yapıldı) |
 | FG-6 | Modeller Precision, Recall, F1, ROC-AUC, PR-AUC ve karmaşıklık matrisi ile karşılaştırılabilmelidir. | M | Tek karşılaştırma tablosu (ortalama ± std) + karmaşıklık matrisi | Birim testi + rapor | 2, 5-8 | ◐ (metrik fonksiyonu H2, CV ortalama ± std tablosu H4, üç modelin karşılaştırma tablosu H5) |
 | FG-7 | Seçilen model kaydedilebilmeli ve yeni müşteri bilgisi girildiğinde kabul olasılığını verebilmelidir. | M | Kaydet-yükle sonrası aynı tahmin; olasılık 0-1 aralığında | Birim testi | 9 | ○ |
 | FG-8 | Modelin kararını en çok etkileyen değişkenler grafiklerle gösterilebilmelidir. | S | İlk 10 değişken permutation importance grafiği + LR katsayı tablosu | Rapor incelemesi | 8 | ○ |
@@ -90,7 +90,7 @@ flowchart LR
 | FOG-2 | Tekrarlanabilirlik | Tüm rastgele işlemlerde sabit tohum; kütüphane sürümleri kilitli. | `random_state = 42`; `requirements.txt` sürümleri sabit; betik iki kez çalıştırıldığında özet JSON aynı | Her hafta |
 | FOG-3 | Sürdürülebilirlik | Kod sürüm kontrolünde; ortak fonksiyonlar `src/` altında ve testli. | `pytest` yeşil; `src/` iş mantığında %80+ kapsam | Her hafta |
 | FOG-4 | Kullanılabilirlik | Arayüz teknik bilgisi olmayan bir çalışanın kullanabileceği sadelikte olmalıdır. | Form yalnızca geçerli seçenekler sunar; ilk kullanımda yardım almadan tahmin alınabilir (ekip dışı 1 kişiyle deneme) | 9 |
-| FOG-5 | Performans | Tek tahmin 1 saniyenin altında; eğitim standart dizüstü bilgisayarda çalışabilir. | Tek tahmin < 1 sn (test ile ölçülür); tam hiperparametre araması < 30 dk (8 GB RAM) | 7, 9 |
+| FOG-5 | Performans | Tek tahmin 1 saniyenin altında; eğitim standart dizüstü bilgisayarda çalışabilir. | Tek tahmin < 1 sn (test ile ölçülür); tam hiperparametre araması < 30 dk (8 GB RAM; H7'de iki aramanın toplamı 264 sn) | 7, 9 |
 | FOG-6 | Taşınabilirlik | Betikler macOS ve Windows'ta aynı komutlarla çalışmalıdır. | İşletim sistemine özel yol yok; README komutları iki sistemde denenmiş | Her hafta |
 | FOG-7 | Güvenilirlik / Hata yönetimi | Hatalar sessizce yutulmaz; kullanıcıya anlamlı mesaj gösterilir. | Eksik veri dosyası, eksik grafik, geçersiz girdi için açıklayıcı hata; boş `except` yok | Her hafta |
 
@@ -144,7 +144,7 @@ flowchart TD
 - Veri 2008-2010 yıllarında tek bir Portekiz bankasından toplanmıştır. Sonuçların günümüze ve başka bankalara aynen genellenmesi varsayılmaz.
 - Veri dengesizdir (%11,70 kabul). Başarı doğruluk oranıyla değil, PR-AUC, ROC-AUC, Recall ve F1 ile ölçülür.
 - Gerçek arama maliyeti ve mevduat getirisi bilinmediği için kazanç analizi oransal yapılır.
-- Proje 10 haftalık takvimle yürütülür. Her hafta ilerleme raporu teslim edilir. Takım kaptanı haftalara göre değişir.
+- Proje 9 haftalık takvimle yürütülür. Her hafta ilerleme raporu teslim edilir. Takım kaptanı haftalara göre değişir.
 - Ekip üyelerinin aynı anda yalnızca kısıtlı süresi vardır. Bu yüzden iş paketleri haftalık ve bağımsız test edilebilir parçalara bölünmüştür.
 
 ## 10. Risk Kaydı
