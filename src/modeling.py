@@ -106,19 +106,20 @@ def build_xgboost(include_age_group: bool = False, include_day: bool = True) -> 
 
 
 class ClassWeightedXGBClassifier(XGBClassifier):
-    """scale_pos_weight değerini her fit çağrısında, o fit'e gelen eğitim etiketlerinden hesaplayan XGBoost.
+    """Pozitif sınıfa, her fit çağrısında o fit'in eğitim etiketlerinden hesaplanan negatif/pozitif oranı kadar ağırlık veren XGBoost.
 
-    CV'de her katman kendi eğitim oranını kullanır, doğrulama katmanının etiketlerinden bilgi sızmaz.
+    Ağırlık hiperparametre olarak değil sample_weight olarak verilir, bu yüzden fit modelin kurucu parametrelerini değiştirmez.
+    CV'de her katman kendi eğitim oranını kullanır, doğrulama katmanının etiketlerinden bilgi sızmaz. Etiketler 0/1 olmalıdır.
     """
 
-    def fit(self, X: pd.DataFrame | np.ndarray, y: pd.Series | np.ndarray, **fit_params: Any) -> "ClassWeightedXGBClassifier":
+    def fit(self, X: pd.DataFrame | np.ndarray, y: pd.Series | np.ndarray) -> "ClassWeightedXGBClassifier":
         labels = np.asarray(y)
-        positives = int(labels.sum())
+        positives = int((labels == 1).sum())
         negatives = len(labels) - positives
         if positives == 0 or negatives == 0:
             raise ValueError("Sınıf ağırlığı hesaplamak için eğitim etiketlerinde iki sınıf da bulunmalı.")
-        self.set_params(scale_pos_weight=negatives / positives)
-        return super().fit(X, y, **fit_params)
+        sample_weight = np.where(labels == 1, negatives / positives, 1.0)
+        return super().fit(X, y, sample_weight=sample_weight)
 
 
 def add_smote_step(pipeline: Pipeline) -> ImbPipeline:

@@ -3,6 +3,7 @@ import pandas as pd
 import pytest
 from sklearn.base import BaseEstimator, ClassifierMixin, clone
 from sklearn.pipeline import Pipeline
+from xgboost import XGBClassifier
 
 from src.config import CV_FOLDS, RANDOM_STATE
 from src.data_loader import load_raw
@@ -222,18 +223,24 @@ def test_class_weight_strategy_sets_balanced_weights_on_sklearn_models() -> None
     assert forest.class_weight == "balanced_subsample"
 
 
-def test_class_weighted_xgboost_derives_weight_from_the_labels_of_each_fit() -> None:
-    X = pd.DataFrame({"a": np.arange(100, dtype=float)})
+def test_class_weighted_xgboost_weights_positives_by_the_negative_to_positive_ratio_of_each_fit() -> None:
+    X = pd.DataFrame({"a": np.arange(100, dtype=float), "b": np.arange(100, dtype=float) % 7})
     one_in_five = pd.Series(np.arange(100) % 5 == 0).astype(int)
-    one_in_ten = pd.Series(np.arange(100) % 10 == 0).astype(int)
-    booster = clone(ClassWeightedXGBClassifier(n_estimators=5))
+    weighted = ClassWeightedXGBClassifier(n_estimators=20, random_state=RANDOM_STATE).fit(X, one_in_five)
+    manual = XGBClassifier(n_estimators=20, random_state=RANDOM_STATE).fit(X, one_in_five, sample_weight=np.where(one_in_five == 1, 80 / 20, 1.0))
 
-    booster.fit(X, one_in_five)
-    first_weight = booster.get_params()["scale_pos_weight"]
-    booster.fit(X, one_in_ten)
+    assert np.allclose(weighted.predict_proba(X), manual.predict_proba(X))
 
-    assert first_weight == pytest.approx(80 / 20)
-    assert booster.get_params()["scale_pos_weight"] == pytest.approx(90 / 10)
+
+def test_class_weighted_xgboost_fit_does_not_change_constructor_parameters() -> None:
+    X = pd.DataFrame({"a": np.arange(100, dtype=float)})
+    y = pd.Series(np.arange(100) % 5 == 0).astype(int)
+    booster = ClassWeightedXGBClassifier(n_estimators=5)
+
+    parameters_before = booster.get_params()
+    booster.fit(X, y)
+
+    assert booster.get_params() == parameters_before
 
 
 def test_class_weighted_xgboost_rejects_single_class_labels() -> None:
