@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 from fractions import Fraction
-from typing import Any, Sequence
+from typing import Any, Callable, Sequence
 
 import numpy as np
 import pandas as pd
@@ -98,19 +98,24 @@ def is_ablation_candidate(comparison: dict[str, float]) -> bool:
     )
 
 
-def fold_metrics_at_threshold(
+def fold_metrics_at_nested_threshold(
     y_true: Sequence[int] | np.ndarray,
     oof_proba: np.ndarray,
     fold_ids: np.ndarray,
-    threshold: float,
+    select_threshold: Callable[[np.ndarray, np.ndarray], float],
 ) -> list[dict[str, float]]:
-    """OOF olasılıklarından, her CV katmanının metriklerini verilen eşikte hesaplar (eşikten bağımsız ROC-AUC ve PR-AUC dahil)."""
+    """Her katmanın metriklerini, eşiği o katman dışındaki katmanların OOF tahminlerinden seçerek hesaplar.
+
+    Eşik, üzerinde ölçüldüğü tahminlere bakmadan seçildiği için sonuç, eşiği tüm OOF tahminlerinden seçip aynı tahminlerde ölçmekten
+    daha az iyimserdir.
+    """
     y_array = np.asarray(y_true)
     metrics = []
     for fold in np.unique(fold_ids):
-        in_fold = fold_ids == fold
-        proba = oof_proba[in_fold]
-        metrics.append(compute_metrics(y_array[in_fold], (proba >= threshold).astype(int), proba))
+        held_out = fold_ids == fold
+        threshold = select_threshold(y_array[~held_out], oof_proba[~held_out])
+        proba = oof_proba[held_out]
+        metrics.append(compute_metrics(y_array[held_out], (proba >= threshold).astype(int), proba))
     return metrics
 
 
