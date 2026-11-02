@@ -73,6 +73,9 @@ python notebooks/build_kesifsel_analiz.py
 # Hafta 3 raporu (.docx); --kaptan o haftanın kaptanının öğrenci numarası
 python reports/hafta3_rapor.py --kaptan 230260054
 
+# Aynı raporun kısa sürümü (tablo ve şekiller aynı, anlatım kısaltılmış)
+python reports/hafta3_rapor_kisa.py --kaptan 230260054
+
 # Hafta 4 ön işleme + ilk Lojistik Regresyon (5 katlı CV): özet JSON, PR/ROC grafiği ve notebook
 python notebooks/build_ilk_model.py
 python reports/hafta4_rapor.py --kaptan 230260054
