@@ -56,20 +56,28 @@ def is_within_noise(comparison: dict[str, float]) -> bool:
     return abs(comparison["mean_difference"]) < comparison["std_difference"]
 
 
+def describe_change(comparison: dict[str, float]) -> str:
+    """"PR-AUC ortalamada 0,0384 arttı ve katmanların hepsinde yükseldi" gibi yön ve katman sayısı ifadesi."""
+    improved = comparison["folds_improved"]
+    folds = "hiçbir katmanda yükselmedi" if improved == 0 else f"{fold_count_text(improved, comparison['fold_count'])} yükseldi"
+    difference = comparison["mean_difference"]
+    if difference == 0:
+        return f"PR-AUC ortalaması değişmedi ve {folds}."
+    direction = "arttı" if difference > 0 else "azaldı"
+    return f"PR-AUC ortalamada {decimal(abs(difference), 4)} {direction} ve {folds}."
+
+
 def describe_comparison(comparison: dict[str, float], change: str) -> str:
     """Bir karşılaştırmanın sonucunu yön, katman sayısı ve gürültüye göre büyüklüğüyle birlikte cümleye döker."""
     difference = comparison["mean_difference"]
-    improved = comparison["folds_improved"]
-    folds = "hiçbir katmanda yükselmedi" if improved == 0 else f"{fold_count_text(improved, comparison['fold_count'])} yükseldi"
     if difference == 0:
-        return f"{change} PR-AUC ortalaması değişmedi ve {folds}."
-    direction = "arttı" if difference > 0 else "azaldı"
+        return f"{change} {describe_change(comparison)}"
     spread = decimal(comparison["std_difference"], 4)
     is_small = is_within_noise(comparison)
     # "Ancak" yalnızca küçük bir iyileşmeyi sınırlarken anlamlı; düşüşten sonra gereksiz bir karşıtlık kurar.
     lead = "Ancak bu fark" if is_small and difference > 0 else "Bu fark"
     size = f"{lead}, katmanlardaki farkların standart sapmasından ({spread}) {'küçük' if is_small else 'büyük'}."
-    return f"{change} PR-AUC ortalamada {decimal(abs(difference), 4)} {direction} ve {folds}. {size}"
+    return f"{change} {describe_change(comparison)} {size}"
 
 
 __all__ = [
@@ -78,6 +86,7 @@ __all__ = [
     "MONTH_NAMES_TR",
     "Summary",
     "decimal",
+    "describe_change",
     "describe_comparison",
     "fold_count_text",
     "is_within_noise",

@@ -24,7 +24,7 @@ if str(ROOT) not in sys.path:
 
 from src.data_loader import load_raw, validate_raw
 from src.eda_plots import save_figure
-from src.evaluate import JSON_DECIMALS, compare_folds, round_metrics, summarize_for_json
+from src.evaluate import JSON_DECIMALS, compare_folds, fold_composition_for_json, round_metrics, summarize_for_json
 from src.model_plots import plot_pr_roc_curves
 from src.modeling import (
     DEFAULT_THRESHOLD,
@@ -32,7 +32,6 @@ from src.modeling import (
     build_baseline,
     build_logistic_regression,
     cross_validate_model,
-    fold_composition,
     make_cv,
 )
 from src.notebook_build import write_and_execute_notebook
@@ -81,7 +80,7 @@ def build_summary(df: pd.DataFrame) -> tuple[dict[str, Any], dict[str, CrossVali
             "test_positive_rate": round(float(split.y_test.mean()), JSON_DECIMALS),
             "raw_feature_count": split.X_train.shape[1],
         },
-        "cv_folds": fold_composition(split.X_train, split.y_train),
+        "cv_folds": fold_composition_for_json(split.X_train, split.y_train, make_cv()),
         "threshold": DEFAULT_THRESHOLD,
         # Varsayılan eşikte "kabul eder" denen müşterilerin oranı; düşük Recall'un nedenini rapora sayıyla taşır.
         "oof_predicted_positive_rate": round(float((results[MAIN_MODEL].oof_proba >= DEFAULT_THRESHOLD).mean()), JSON_DECIMALS),

@@ -264,3 +264,13 @@ def test_linear_pipeline_without_log_only_standardizes_skewed_columns() -> None:
     standardized_balance = (customers["balance"] - customers["balance"].mean()) / customers["balance"].std(ddof=0)
     assert not any(name.startswith(("signed_log__", "log__")) for name in names)
     assert output[:, names.index("scaled__balance")] == pytest.approx(standardized_balance.to_numpy())
+
+
+def test_linear_pipeline_without_day_and_without_log_standardizes_remaining_numeric_columns() -> None:
+    customers = make_customers()
+    pipeline = build_linear_feature_pipeline(include_day=False, use_log=False).fit(customers)
+    names = feature_names(pipeline)
+
+    scaled_names = [name for name in names if name.startswith("scaled__")]
+
+    assert scaled_names == ["scaled__balance", "scaled__campaign", "scaled__previous", "scaled__age", "scaled__pdays"]

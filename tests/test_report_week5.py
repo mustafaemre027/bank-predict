@@ -7,11 +7,11 @@ from reports.hafta5_rapor import (
     SUMMARY_PATH,
     build_report,
     check_ablation_keeps_defaults,
-    describe_ablation_change,
     describe_recall,
     describe_tree_gap,
 )
 from src.formatting import format_number
+from src.report_text import describe_change
 from tests.test_report_docx import document_text
 
 CAPTAIN_ID = "230260173"
@@ -79,12 +79,12 @@ def test_report_refuses_to_describe_defaults_as_kept_when_an_ablation_is_a_candi
         check_ablation_keeps_defaults(with_candidate)
 
 
-def test_ablation_change_text_covers_no_change_and_no_improving_fold() -> None:
+def test_change_text_covers_no_change_and_no_improving_fold() -> None:
     unchanged = {"mean_difference": 0.0, "std_difference": 0.004, "folds_improved": 3, "fold_count": 5}
     worse = {"mean_difference": -0.0163, "std_difference": 0.0038, "folds_improved": 0, "fold_count": 5}
 
-    assert describe_ablation_change(unchanged, "X'te") == "X'te PR-AUC ortalaması değişmedi ve 5 katmanın 3'ünde yükseldi."
-    assert describe_ablation_change(worse, "X'te") == "X'te PR-AUC ortalamada 0,0163 azaldı ve hiçbir katmanda yükselmedi."
+    assert describe_change(unchanged) == "PR-AUC ortalaması değişmedi ve 5 katmanın 3'ünde yükseldi."
+    assert describe_change(worse) == "PR-AUC ortalamada 0,0163 azaldı ve hiçbir katmanda yükselmedi."
 
 
 def test_tree_gap_is_not_ranked_when_difference_is_within_noise(summary) -> None:

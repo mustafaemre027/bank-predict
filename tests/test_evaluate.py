@@ -1,7 +1,17 @@
 import numpy as np
+import pandas as pd
 import pytest
+from sklearn.model_selection import StratifiedKFold
 
-from src.evaluate import build_comparison_table, compare_folds, compute_metrics, is_ablation_candidate, summarize_cv
+from src.evaluate import (
+    build_comparison_table,
+    compare_folds,
+    compute_metrics,
+    fold_composition_for_json,
+    is_ablation_candidate,
+    min_folds_improved_for_candidate,
+    summarize_cv,
+)
 
 
 def test_compute_metrics_basic_example():
@@ -75,13 +85,29 @@ def test_build_comparison_table_has_one_row_per_model_with_mean_and_std_per_metr
 @pytest.mark.parametrize(
     ("comparison", "expected"),
     [
-        ({"mean_difference": 0.02, "std_difference": 0.005, "folds_improved": 5}, True),
-        ({"mean_difference": 0.02, "std_difference": 0.005, "folds_improved": 4}, True),
-        ({"mean_difference": 0.02, "std_difference": 0.005, "folds_improved": 3}, False),
-        ({"mean_difference": 0.003, "std_difference": 0.005, "folds_improved": 5}, False),
-        ({"mean_difference": -0.02, "std_difference": 0.005, "folds_improved": 0}, False),
-        ({"mean_difference": 0.0, "std_difference": 0.0, "folds_improved": 0}, False),
+        ({"mean_difference": 0.02, "std_difference": 0.005, "folds_improved": 5, "fold_count": 5}, True),
+        ({"mean_difference": 0.02, "std_difference": 0.005, "folds_improved": 4, "fold_count": 5}, True),
+        ({"mean_difference": 0.02, "std_difference": 0.005, "folds_improved": 3, "fold_count": 5}, False),
+        ({"mean_difference": 0.003, "std_difference": 0.005, "folds_improved": 5, "fold_count": 5}, False),
+        ({"mean_difference": -0.02, "std_difference": 0.005, "folds_improved": 0, "fold_count": 5}, False),
+        ({"mean_difference": 0.0, "std_difference": 0.0, "folds_improved": 0, "fold_count": 5}, False),
     ],
 )
 def test_ablation_candidate_needs_gain_above_noise_in_most_folds(comparison, expected):
     assert is_ablation_candidate(comparison) is expected
+
+
+@pytest.mark.parametrize(("fold_count", "expected"), [(5, 4), (10, 8), (3, 3)])
+def test_required_improving_folds_scale_with_fold_count(fold_count, expected):
+    assert min_folds_improved_for_candidate(fold_count) == expected
+
+
+def test_fold_composition_lists_sizes_and_positive_rate_per_fold():
+    X = pd.DataFrame({"a": range(20)})
+    y = pd.Series([1, 0, 0, 0] * 5)
+
+    composition = fold_composition_for_json(X, y, StratifiedKFold(n_splits=5))
+
+    assert len(composition) == 5
+    assert all(fold["train_rows"] == 16 and fold["validation_rows"] == 4 for fold in composition)
+    assert all(fold["validation_positive_rate"] == 0.25 for fold in composition)

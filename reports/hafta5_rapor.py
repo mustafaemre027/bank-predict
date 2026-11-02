@@ -17,7 +17,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from src.config import AGE_LABELS, CV_FOLDS
-from src.evaluate import MIN_FOLDS_IMPROVED_FOR_CANDIDATE
+from src.evaluate import min_folds_improved_for_candidate
 from src.formatting import format_number, join_names
 from src.modeling import LOGISTIC_REGRESSION, MODEL_LABELS, RANDOM_FOREST, XGBOOST
 from src.report_docx import (
@@ -31,8 +31,8 @@ from src.report_text import (
     METRIC_LABELS,
     Summary,
     decimal,
+    describe_change,
     describe_comparison,
-    fold_count_text,
     is_within_noise,
     mean_of,
     mean_std,
@@ -66,7 +66,7 @@ WORK_PACKAGES = [
     ("2", "Veri Ön İşleme ve Temizleme", "Mustafa Emre KAPLAN", "Tamamlandı"),
     ("3", "Keşifsel Veri Analizi", "Mustafa Emre KAPLAN", "Tamamlandı"),
     ("4", "Makine Öğrenmesi Modellerinin Kurulması", "Ömer NARÇİÇEĞİ", "Tamamlandı"),
-    ("5", "Model Eğitimi ve Optimizasyon", "Ömer NARÇİÇEĞİ", "Başlamadı"),
+    ("5", "Model Eğitimi ve Optimizasyon", "Ömer NARÇİÇEĞİ", "Devam ediyor"),
     ("6", "Modellerin Test Edilmesi", "Mesut ASLAN", "Devam ediyor"),
     ("7", "Sonuçların Değerlendirilmesi ve Proje Raporunun Hazırlanması", "Tüm Ekip", "Devam ediyor"),
 ]
@@ -89,7 +89,7 @@ NEXT_WEEK = [
 PREPROCESSING_BRANCHES = [
     ["balance, campaign, previous", "İşareti koruyan log dönüşümü (balance) ya da log(1+x) (campaign, previous), ardından standartlaştırma", "Ham değer"],
     ["age, day, pdays", "Standartlaştırma", "Ham değer"],
-    ["Yaş grubu", "6 aralıklı yaş grubu One-Hot ile eklendi", "Varsayılan olarak yok, ablasyonda denendi"],
+    ["Yaş grubu", f"{len(AGE_LABELS)} aralıklı yaş grubu One-Hot ile eklendi", "Varsayılan olarak yok, ablasyonda denendi"],
     ["default, housing, loan", "yes = 1, no = 0", "yes = 1, no = 0"],
     ["job, marital, education, contact, month, poutcome", "One-Hot Encoding, unknown ayrı kategori", "One-Hot Encoding, unknown ayrı kategori"],
     ["was_contacted_before", "pdays ≠ -1 ise 1", "pdays ≠ -1 ise 1"],
@@ -152,19 +152,8 @@ def format_parameters(parameters: dict[str, object]) -> str:
     return ", ".join(f"{name} = {format_parameter(value)}" for name, value in parameters.items())
 
 
-def describe_ablation_change(comparison: dict[str, float], lead: str) -> str:
-    """Bir ablasyon varyantının yönünü ve kaç katmanda yükseldiğini kısa bir cümleyle yazar; gürültü yorumu ayrı yapılır."""
-    improved = comparison["folds_improved"]
-    folds = "hiçbir katmanda yükselmedi" if improved == 0 else f"{fold_count_text(improved, comparison['fold_count'])} yükseldi"
-    difference = comparison["mean_difference"]
-    if difference == 0:
-        return f"{lead} PR-AUC ortalaması değişmedi ve {folds}."
-    direction = "arttı" if difference > 0 else "azaldı"
-    return f"{lead} PR-AUC ortalamada {decimal(abs(difference), 4)} {direction} ve {folds}."
-
-
 def ablation_sentences(summary: Summary, names: list[str]) -> str:
-    changes = " ".join(describe_ablation_change(summary["ablation"][name]["comparison"], ABLATION_LEADS[name]) for name in names)
+    changes = " ".join(f"{ABLATION_LEADS[name]} {describe_change(summary['ablation'][name]['comparison'])}" for name in names)
     within_noise = [ABLATION_SHORT_NAMES[name] for name in names if is_within_noise(summary["ablation"][name]["comparison"])]
     if not within_noise:
         return changes
@@ -253,7 +242,7 @@ def add_method(report: WeeklyReport, summary: Summary) -> None:
         "Ön işleme adımlarının katkısını görmek için ablasyon çalışması yapıldı. Bir adım çıkarıldı (ağaç modellerinde yaş grubu ise "
         "eklendi) ve model aynı katmanlarla yeniden eğitilerek PR-AUC farkı katman katman hesaplandı. Bir değişikliğin varsayılan "
         "ön işlemeyi değiştirmesi için iki koşul belirlendi: ortalama artış katmanlar arasındaki standart sapmayı aşmalı ve "
-        f"{CV_FOLDS} katmanın en az {MIN_FOLDS_IMPROVED_FOR_CANDIDATE}'ünde iyileşme görülmeli.",
+        f"{CV_FOLDS} katmanın en az {min_folds_improved_for_candidate(CV_FOLDS)}'ünde iyileşme görülmeli.",
         "Rastgele Orman birden çok iş parçacığında çalıştırıldığında ağaçların olasılıkları her seferinde farklı sırayla "
         "toplandığı için sonuçlar ondalık sayının son basamaklarında değişebiliyordu. Sonuçların birebir tekrar edilebilmesi için "
         "bu model tek iş parçacığında çalıştırıldı.",

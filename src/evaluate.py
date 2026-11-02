@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from typing import Sequence
+import math
+from fractions import Fraction
+from typing import Any, Sequence
 
 import numpy as np
 import pandas as pd
@@ -15,13 +17,12 @@ from sklearn.metrics import (
 
 # Özet JSON'a yazılan sayılar bu basamağa yuvarlanır; iki çalıştırmanın JSON'ları bu sayede birebir karşılaştırılabilir.
 JSON_DECIMALS = 4
+# Ablasyon varyantının varsayılan yapılmaya aday olması için iyileşmesi gereken katman payı (5 katmanın 4'ü).
+MIN_IMPROVED_FOLD_SHARE = Fraction(4, 5)
 
 
 def round_metrics(metrics: dict[str, float]) -> dict[str, float]:
     return {name: round(value, JSON_DECIMALS) for name, value in metrics.items()}
-
-# Ablasyon varyantının varsayılan yapılmaya aday olması için gereken en az iyileşen katman sayısı (5 katmanın 4'ü).
-MIN_FOLDS_IMPROVED_FOR_CANDIDATE = 4
 
 
 def compute_metrics(y_true: Sequence[int] | np.ndarray, y_pred: Sequence[int] | np.ndarray, y_proba: Sequence[float] | np.ndarray) -> dict[str, float]:
@@ -84,10 +85,26 @@ def summarize_for_json(fold_metrics: list[dict[str, float]]) -> dict[str, object
     }
 
 
+def min_folds_improved_for_candidate(fold_count: int) -> int:
+    return math.ceil(MIN_IMPROVED_FOLD_SHARE * fold_count)
+
+
 def is_ablation_candidate(comparison: dict[str, float]) -> bool:
     """Bir varyantın varsayılanı değiştirmeye aday olması için ortalama artışı katmanlar arası std'yi aşmalı ve katmanların çoğunda iyileşme olmalı."""
     return (
         comparison["mean_difference"] > 0
         and comparison["mean_difference"] > comparison["std_difference"]
-        and comparison["folds_improved"] >= MIN_FOLDS_IMPROVED_FOR_CANDIDATE
+        and comparison["folds_improved"] >= min_folds_improved_for_candidate(comparison["fold_count"])
     )
+
+
+def fold_composition_for_json(X: pd.DataFrame, y: pd.Series, cv: Any) -> list[dict[str, Any]]:
+    """Katmanlamanın her katmanda hedef oranını koruduğunu göstermek için katman boyutları ve pozitif oranları."""
+    return [
+        {
+            "train_rows": len(train_index),
+            "validation_rows": len(validation_index),
+            "validation_positive_rate": round(float(y.iloc[validation_index].mean()), JSON_DECIMALS),
+        }
+        for train_index, validation_index in cv.split(X, y)
+    ]
