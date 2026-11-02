@@ -31,6 +31,8 @@ from src.modeling import (
     LOGISTIC_REGRESSION,
     MODEL_LABELS,
     RANDOM_FOREST,
+    RF_PARAMS,
+    XGB_PARAMS,
     XGBOOST,
     CrossValidationResult,
     build_baseline,
@@ -42,7 +44,7 @@ from src.modeling import (
     make_cv,
 )
 from src.notebook_build import write_and_execute_notebook
-from src.preprocessing import split_train_test
+from src.preprocessing import build_linear_feature_pipeline, build_tree_feature_pipeline, split_train_test
 
 NOTEBOOK_PATH = ROOT / "notebooks" / "04_model_karsilastirma.ipynb"
 FIGURES_DIR = ROOT / "reports" / "figures"
@@ -79,6 +81,17 @@ def build_main_models() -> dict[str, BaseEstimator]:
     }
 
 
+def count_model_features(X_train: pd.DataFrame) -> dict[str, int]:
+    """Ön işleme çıktısındaki sütun sayısını bulmak için pipeline'lar tüm eğitim verisine fit edilir.
+
+    Bu fit yalnızca betimleme içindir; CV skorları her katmanda ayrı fit edilen modellerden gelir, test verisi kullanılmaz.
+    """
+    return {
+        LOGISTIC_REGRESSION: len(build_linear_feature_pipeline().fit(X_train).named_steps["preprocess"].get_feature_names_out()),
+        "tree": len(build_tree_feature_pipeline().fit(X_train).named_steps["preprocess"].get_feature_names_out()),
+    }
+
+
 def build_summary(df: pd.DataFrame) -> tuple[dict[str, Any], dict[str, CrossValidationResult], pd.Series]:
     split = split_train_test(df)
     cv = make_cv()
@@ -100,6 +113,8 @@ def build_summary(df: pd.DataFrame) -> tuple[dict[str, Any], dict[str, CrossVali
         },
         "cv_folds": fold_composition(split.X_train, split.y_train),
         "threshold": DEFAULT_THRESHOLD,
+        "feature_counts": count_model_features(split.X_train),
+        "hyperparameters": {RANDOM_FOREST: RF_PARAMS, XGBOOST: XGB_PARAMS},
         "models": {name: summarize_for_json(result.fold_metrics) for name, result in results.items()},
         "comparisons": {
             name: round_metrics(compare_folds(results[base].fold_metrics, results[variant].fold_metrics, COMPARISON_METRIC))

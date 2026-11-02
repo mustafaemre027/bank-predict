@@ -34,6 +34,26 @@
     }
   ],
   "threshold": 0.5,
+  "feature_counts": {
+    "logistic_regression": 54,
+    "tree": 48
+  },
+  "hyperparameters": {
+    "random_forest": {
+      "n_estimators": 300,
+      "min_samples_leaf": 5,
+      "max_features": "sqrt"
+    },
+    "xgboost": {
+      "n_estimators": 300,
+      "learning_rate": 0.05,
+      "max_depth": 5,
+      "subsample": 0.8,
+      "colsample_bytree": 0.8,
+      "tree_method": "hist",
+      "eval_metric": "aucpr"
+    }
+  },
   "models": {
     "baseline": {
       "folds": [
