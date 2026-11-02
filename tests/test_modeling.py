@@ -1,19 +1,27 @@
 import numpy as np
 import pandas as pd
 import pytest
-from sklearn.base import BaseEstimator, ClassifierMixin
+from sklearn.base import BaseEstimator, ClassifierMixin, clone
+from sklearn.pipeline import Pipeline
 
 from src.config import CV_FOLDS, RANDOM_STATE
 from src.data_loader import load_raw
 from src.modeling import (
+    IMBALANCE_CLASS_WEIGHT,
+    IMBALANCE_NONE,
+    IMBALANCE_SMOTE,
+    IMBALANCE_STRATEGIES,
+    ClassWeightedXGBClassifier,
+    add_smote_step,
     build_baseline,
+    build_model,
     build_logistic_regression,
     build_random_forest,
     build_xgboost,
     cross_validate_model,
     make_cv,
 )
-from src.preprocessing import split_train_test
+from src.preprocessing import build_tree_feature_pipeline, split_train_test
 from tests.test_preprocessing import make_customers
 
 
@@ -134,3 +142,102 @@ def test_same_seed_gives_identical_out_of_fold_predictions(build_model, real_tra
     second = cross_validate_model(build_model(), X, y, make_cv())
 
     assert np.array_equal(first.oof_proba, second.oof_proba)
+
+
+class SpyClassifier(ClassifierMixin, BaseEstimator):
+    """Fit'te gördüğü satır sayısı ve pozitif oranı ile predict_proba'da gördüğü satır sayısını kaydeden sahte model."""
+
+    fit_rows: list[int] = []
+    fit_positive_rates: list[float] = []
+    predict_rows: list[int] = []
+
+    def fit(self, X: np.ndarray, y: np.ndarray) -> "SpyClassifier":
+        SpyClassifier.fit_rows.append(len(y))
+        SpyClassifier.fit_positive_rates.append(float(np.mean(y)))
+        self.classes_ = np.array([0, 1])
+        return self
+
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        SpyClassifier.predict_rows.append(len(X))
+        return np.tile([0.5, 0.5], (len(X), 1))
+
+
+@pytest.fixture
+def spy_with_smote(labelled_customers):
+    SpyClassifier.fit_rows, SpyClassifier.fit_positive_rates, SpyClassifier.predict_rows = [], [], []
+    spy_pipeline = Pipeline([*build_tree_feature_pipeline().steps, ("model", SpyClassifier())])
+    return add_smote_step(spy_pipeline)
+
+
+def test_smote_oversamples_only_the_training_fold(spy_with_smote, labelled_customers) -> None:
+    customers, target = labelled_customers
+    cv = make_cv()
+    train_sizes = [len(train_index) for train_index, _ in cv.split(customers, target)]
+
+    cross_validate_model(spy_with_smote, customers, target, cv)
+
+    assert all(fitted > original for fitted, original in zip(SpyClassifier.fit_rows, train_sizes))
+    assert SpyClassifier.fit_positive_rates == pytest.approx([0.5] * CV_FOLDS)
+
+
+def test_smote_does_not_change_the_size_of_the_validation_fold(spy_with_smote, labelled_customers) -> None:
+    customers, target = labelled_customers
+    cv = make_cv()
+    validation_sizes = [len(validation_index) for _, validation_index in cv.split(customers, target)]
+
+    cross_validate_model(spy_with_smote, customers, target, cv)
+
+    assert SpyClassifier.predict_rows == validation_sizes
+
+
+def test_build_model_rejects_unknown_model_and_strategy() -> None:
+    with pytest.raises(ValueError, match="Bilinmeyen model"):
+        build_model("svm")
+    with pytest.raises(ValueError, match="Bilinmeyen strateji"):
+        build_model("xgboost", "undersampling")
+
+
+@pytest.mark.parametrize("model_name", ["logistic_regression", "random_forest", "xgboost"])
+def test_every_strategy_builds_a_model_that_returns_probabilities(model_name, labelled_customers) -> None:
+    customers, target = labelled_customers
+
+    for strategy in IMBALANCE_STRATEGIES:
+        proba = clone(build_model(model_name, strategy)).fit(customers, target).predict_proba(customers)[:, 1]
+
+        assert ((proba >= 0) & (proba <= 1)).all()
+
+
+def test_only_smote_strategy_adds_a_resampling_step() -> None:
+    steps_by_strategy = {strategy: [name for name, _ in build_model("random_forest", strategy).steps] for strategy in IMBALANCE_STRATEGIES}
+
+    assert steps_by_strategy[IMBALANCE_SMOTE] == ["features", "preprocess", "smote", "model"]
+    assert steps_by_strategy[IMBALANCE_NONE] == steps_by_strategy[IMBALANCE_CLASS_WEIGHT] == ["features", "preprocess", "model"]
+
+
+def test_class_weight_strategy_sets_balanced_weights_on_sklearn_models() -> None:
+    logistic = build_model("logistic_regression", IMBALANCE_CLASS_WEIGHT).named_steps["model"]
+    forest = build_model("random_forest", IMBALANCE_CLASS_WEIGHT).named_steps["model"]
+
+    assert logistic.class_weight == "balanced"
+    assert forest.class_weight == "balanced_subsample"
+
+
+def test_class_weighted_xgboost_derives_weight_from_the_labels_of_each_fit() -> None:
+    X = pd.DataFrame({"a": np.arange(100, dtype=float)})
+    one_in_five = pd.Series(np.arange(100) % 5 == 0).astype(int)
+    one_in_ten = pd.Series(np.arange(100) % 10 == 0).astype(int)
+    booster = clone(ClassWeightedXGBClassifier(n_estimators=5))
+
+    booster.fit(X, one_in_five)
+    first_weight = booster.get_params()["scale_pos_weight"]
+    booster.fit(X, one_in_ten)
+
+    assert first_weight == pytest.approx(80 / 20)
+    assert booster.get_params()["scale_pos_weight"] == pytest.approx(90 / 10)
+
+
+def test_class_weighted_xgboost_rejects_single_class_labels() -> None:
+    X = pd.DataFrame({"a": np.arange(10, dtype=float)})
+
+    with pytest.raises(ValueError, match="iki sınıf"):
+        ClassWeightedXGBClassifier(n_estimators=5).fit(X, pd.Series(np.zeros(10, dtype=int)))
