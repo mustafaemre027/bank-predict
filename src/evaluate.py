@@ -55,3 +55,12 @@ def compare_folds(base: list[dict[str, float]], variant: list[dict[str, float]],
         "folds_improved": int((differences > 0).sum()),
         "fold_count": len(differences),
     }
+
+
+def build_comparison_table(summaries: dict[str, pd.DataFrame], metrics: list[str]) -> pd.DataFrame:
+    """Modelleri satır, (metrik, mean/std) çiftlerini sütun yapan karşılaştırma tablosu. Girdi summarize_cv çıktısıdır."""
+    rows = {
+        model: {(metric, statistic): float(summary.loc[metric, statistic]) for metric in metrics for statistic in ("mean", "std")}
+        for model, summary in summaries.items()
+    }
+    return pd.DataFrame.from_dict(rows, orient="index")

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from src.evaluate import compare_folds, compute_metrics, summarize_cv
+from src.evaluate import build_comparison_table, compare_folds, compute_metrics, summarize_cv
 
 
 def test_compute_metrics_basic_example():
@@ -55,3 +55,18 @@ def test_summaries_reject_single_fold_where_std_is_undefined():
         summarize_cv([{"pr_auc": 0.4}])
     with pytest.raises(ValueError, match="En az 2 katman"):
         compare_folds([{"pr_auc": 0.4}], [{"pr_auc": 0.5}], "pr_auc")
+
+
+def test_build_comparison_table_has_one_row_per_model_with_mean_and_std_per_metric():
+    summaries = {
+        "a": summarize_cv([{"pr_auc": 0.4, "roc_auc": 0.7, "f1": 0.1}, {"pr_auc": 0.6, "roc_auc": 0.9, "f1": 0.3}]),
+        "b": summarize_cv([{"pr_auc": 0.2, "roc_auc": 0.5, "f1": 0.0}, {"pr_auc": 0.2, "roc_auc": 0.5, "f1": 0.0}]),
+    }
+
+    table = build_comparison_table(summaries, ["pr_auc", "roc_auc"])
+
+    assert list(table.index) == ["a", "b"]
+    assert table.loc["a", ("pr_auc", "mean")] == pytest.approx(0.5)
+    assert table.loc["a", ("roc_auc", "std")] == pytest.approx(np.std([0.7, 0.9], ddof=1))
+    assert table.loc["b", ("pr_auc", "std")] == 0
+    assert ("f1", "mean") not in table.columns
