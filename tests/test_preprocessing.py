@@ -9,6 +9,7 @@ from src.preprocessing import (
     WAS_CONTACTED_FEATURE,
     add_engineered_features,
     build_linear_feature_pipeline,
+    build_tree_feature_pipeline,
     encode_binary,
     encode_target,
     signed_log1p,
@@ -187,3 +188,79 @@ def test_rare_months_are_merged_into_one_category() -> None:
     month_encoder = pipeline.named_steps["preprocess"].named_transformers_["month"]
 
     assert month_encoder.infrequent_categories_[0].tolist() == ["dec"]
+
+
+def feature_names(pipeline) -> list[str]:
+    return list(pipeline.named_steps["preprocess"].get_feature_names_out())
+
+
+def test_tree_pipeline_keeps_numeric_values_unscaled() -> None:
+    customers = make_customers()
+    pipeline = build_tree_feature_pipeline().fit(customers)
+    names = feature_names(pipeline)
+
+    output = pipeline.transform(customers)
+
+    assert output[:, names.index("numeric__age")].tolist() == customers["age"].tolist()
+    assert output[:, names.index("numeric__balance")].tolist() == customers["balance"].tolist()
+
+
+def test_tree_pipeline_has_no_duration_and_no_missing_values() -> None:
+    pipeline = build_tree_feature_pipeline().fit(make_customers())
+
+    output = pipeline.transform(make_customers())
+
+    assert not np.isnan(output).any()
+    assert not any("duration" in name for name in feature_names(pipeline))
+
+
+def test_tree_pipeline_encodes_unseen_category_as_all_zeros() -> None:
+    pipeline = build_tree_feature_pipeline().fit(make_customers())
+    names = feature_names(pipeline)
+    job_columns = [index for index, name in enumerate(names) if name.startswith("nominal__job_")]
+
+    output = pipeline.transform(make_customers().iloc[[0]].assign(job=["astronaut"]))
+
+    assert output[0, job_columns].sum() == 0
+
+
+def test_tree_pipeline_adds_age_group_only_when_requested() -> None:
+    without_group = feature_names(build_tree_feature_pipeline().fit(make_customers()))
+    with_group = feature_names(build_tree_feature_pipeline(include_age_group=True).fit(make_customers()))
+
+    assert not any(AGE_GROUP_FEATURE in name for name in without_group)
+    assert any(AGE_GROUP_FEATURE in name for name in with_group)
+
+
+def test_tree_pipeline_fills_pdays_for_never_contacted_customers() -> None:
+    customers = make_customers()
+    pipeline = build_tree_feature_pipeline().fit(customers)
+    names = feature_names(pipeline)
+
+    output = pipeline.transform(customers)
+
+    never_contacted = (customers["pdays"] == NOT_PREVIOUSLY_CONTACTED).to_numpy()
+    assert (output[never_contacted, names.index("numeric__pdays")] == 0).all()
+    assert (output[never_contacted, names.index("flag__was_contacted_before")] == 0).all()
+
+
+@pytest.mark.parametrize("build_pipeline", [build_linear_feature_pipeline, build_tree_feature_pipeline])
+def test_day_is_removed_from_output_when_excluded(build_pipeline) -> None:
+    included = feature_names(build_pipeline().fit(make_customers()))
+    excluded = feature_names(build_pipeline(include_day=False).fit(make_customers()))
+
+    assert any(name.endswith("__day") for name in included)
+    assert not any(name.endswith("__day") for name in excluded)
+    assert len(excluded) == len(included) - 1
+
+
+def test_linear_pipeline_without_log_only_standardizes_skewed_columns() -> None:
+    customers = make_customers()
+    pipeline = build_linear_feature_pipeline(use_log=False).fit(customers)
+    names = feature_names(pipeline)
+
+    output = pipeline.transform(customers)
+
+    standardized_balance = (customers["balance"] - customers["balance"].mean()) / customers["balance"].std(ddof=0)
+    assert not any(name.startswith(("signed_log__", "log__")) for name in names)
+    assert output[:, names.index("scaled__balance")] == pytest.approx(standardized_balance.to_numpy())
