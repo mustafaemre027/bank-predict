@@ -9,6 +9,7 @@ import pandas as pd
 from sklearn.metrics import (
     accuracy_score,
     average_precision_score,
+    brier_score_loss,
     f1_score,
     precision_score,
     recall_score,
@@ -85,6 +86,11 @@ def summarize_for_json(fold_metrics: list[dict[str, float]]) -> dict[str, object
     }
 
 
+def is_within_noise(comparison: dict[str, float]) -> bool:
+    """Ortalama fark, katmanlardaki farkların standart sapmasının altındaysa fark gürültü düzeyindedir."""
+    return abs(comparison["mean_difference"]) < comparison["std_difference"]
+
+
 def min_folds_improved_for_candidate(fold_count: int) -> int:
     return math.ceil(MIN_IMPROVED_FOLD_SHARE * fold_count)
 
@@ -117,6 +123,24 @@ def fold_metrics_at_nested_threshold(
         proba = oof_proba[held_out]
         metrics.append(compute_metrics(y_array[held_out], (proba >= threshold).astype(int), proba))
     return metrics
+
+
+def calibration_summary(y_true: Sequence[int] | np.ndarray, proba: np.ndarray, n_bins: int = 10) -> dict[str, Any]:
+    """Brier skoru ve olasılığa göre sıralı, eşit sayıda kayıt içeren dilimler için ortalama tahmin ve gerçek kabul oranı.
+
+    Eşit sayılı dilimler kullanılır, çünkü olasılıklar küçük değerlere yığıldığından eşit genişlikli dilimlerin çoğu boş kalır.
+    """
+    y_array = np.asarray(y_true)
+    order = np.argsort(proba, kind="stable")
+    bins = [
+        {
+            "mean_predicted": float(proba[indices].mean()),
+            "observed_rate": float(y_array[indices].mean()),
+            "count": len(indices),
+        }
+        for indices in np.array_split(order, n_bins)
+    ]
+    return {"brier": float(brier_score_loss(y_array, proba)), "bins": bins}
 
 
 def fold_composition_for_json(X: pd.DataFrame, y: pd.Series, cv: Any) -> list[dict[str, Any]]:
