@@ -12,7 +12,7 @@ from reports.hafta6_rapor import (
     describe_selected_threshold_f1,
 )
 from src.formatting import format_number
-from src.report_text import lower_first
+from src.report_text import lower_first, number_word
 from tests.test_report_docx import document_text
 
 CAPTAIN_ID = "230260143"
@@ -75,7 +75,10 @@ def test_captain_row_keeps_the_smote_acronym_intact(week6_document) -> None:
     assert "sMOTE" not in text
 
 
-@pytest.mark.parametrize(("text", "expected"), [("Üç modelin", "üç modelin"), ("SMOTE'un", "SMOTE'un"), ("A", "a")])
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [("Üç modelin", "üç modelin"), ("SMOTE'un", "SMOTE'un"), ("A", "a"), ("", ""), ("Işık", "ışık"), ("İlk", "ilk")],
+)
 def test_lower_first_leaves_acronyms_alone(text: str, expected: str) -> None:
     assert lower_first(text) == expected
 
@@ -109,7 +112,12 @@ def test_best_strategy_text_lists_strategies_when_not_every_model_prefers_the_un
 
 def test_selected_threshold_text_claims_no_large_advantage_only_when_f1_values_are_close(summary) -> None:
     far_apart = copy_of(summary)
-    far_apart["experiments"]["xgboost__smote"]["summary_at_f1_threshold"]["f1"]["mean"] = 0.3
+    far_apart["experiments"]["xgboost__smote"]["nested_summary_f1_threshold"]["f1"]["mean"] = 0.3
 
     assert "büyük bir üstünlük kalmadı" in describe_selected_threshold_f1(summary)
     assert "büyük bir üstünlük kalmadı" not in describe_selected_threshold_f1(far_apart)
+
+
+@pytest.mark.parametrize(("number", "expected"), [(0, "sıfır"), (2, "iki"), (9, "dokuz"), (10, "on"), (11, "11")])
+def test_number_word_spells_small_numbers_and_keeps_large_ones_as_digits(number: int, expected: str) -> None:
+    assert number_word(number) == expected

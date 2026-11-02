@@ -31,7 +31,7 @@ from src.modeling import (
     XGBOOST,
 )
 from src.report_docx import CAPTAIN_ROLE, TEAM, TEAM_PROCESS_CRITERIA, WeeklyReport, report_file_name
-from src.report_text import Summary, decimal, describe_comparison, lower_first
+from src.report_text import Summary, decimal, describe_comparison, lower_first, number_word
 
 WEEK = 6
 CAPTAIN_DUTY = "Takım kaptanlığı ve haftalık raporun hazırlanması"
@@ -143,11 +143,13 @@ def describe_pr_auc_effects(summary: Summary) -> str:
         for key, effect in improved.items():
             model, strategy = key.split("__")
             sentences.append(describe_comparison(effect, f"{MODEL_LABELS[model]} modelinde {STRATEGY_LABELS[strategy].lower()} kullanıldığında"))
-        return " ".join(sentences)
+        remaining = len(effects) - len(improved)
+        rest = f" Diğer {number_word(remaining)} karşılaştırmada PR-AUC artmadı." if remaining else ""
+        return f"{' '.join(sentences)}{rest}"
     drops = [-effect["mean_difference"] for effect in effects.values()]
     never_improved = sum(effect["folds_improved"] for effect in effects.values()) == 0
     detail = " Hiçbir katmanda da iyileşme görülmedi." if never_improved else ""
-    return (f"Sınıf ağırlığı ve SMOTE, ağırlıksız hâle göre {len(effects)} karşılaştırmanın hiçbirinde PR-AUC'yi artırmadı. "
+    return (f"Sınıf ağırlığı ve SMOTE, ağırlıksız hâle göre {number_word(len(effects))} karşılaştırmanın hiçbirinde PR-AUC'yi artırmadı. "
             f"Ortalama düşüş {decimal(min(drops), 4)} ile {decimal(max(drops), 4)} arasında kaldı.{detail} "
             "Bu yöntemler modelin müşterileri sıralama kalitesini artırmadı.")
 
@@ -155,14 +157,15 @@ def describe_pr_auc_effects(summary: Summary) -> str:
 def f1_spread_within_models(summary: Summary) -> float:
     spreads = []
     for model in MODELS:
-        values = [metric_mean(summary, model, strategy, "f1", "summary_at_f1_threshold") for strategy in IMBALANCE_STRATEGIES]
+        values = [metric_mean(summary, model, strategy, "f1", "nested_summary_f1_threshold") for strategy in IMBALANCE_STRATEGIES]
         spreads.append(max(values) - min(values))
     return max(spreads)
 
 
 def describe_selected_threshold_f1(summary: Summary) -> str:
     spread = f1_spread_within_models(summary)
-    text = f"Eşik OOF tahminlerinden seçildiğinde F1 değerleri aynı modelin üç stratejisi arasında en fazla {decimal(spread)} fark etti."
+    text = (f"Eşik, ölçüldüğü katmanın dışındaki katmanların tahminlerinden seçildiğinde F1 değerleri aynı modelin "
+            f"{number_word(len(IMBALANCE_STRATEGIES))} stratejisi arasında en fazla {decimal(spread)} fark etti.")
     if spread < SMALL_F1_SPREAD:
         return f"{text} Eşik doğru seçilince stratejiler arasında F1 bakımından büyük bir üstünlük kalmadı."
     return text
@@ -180,7 +183,7 @@ def describe_best_strategies(summary: Summary) -> str:
 def describe_tuning_candidates(summary: Summary) -> str:
     candidates = summary["candidates_for_tuning"]
     listing = join_names([f"{MODEL_LABELS[entry['model']]} ({STRATEGY_LABELS[entry['strategy']].lower()})" for entry in candidates])
-    return f"Yedinci haftada hiperparametre araması için PR-AUC sıralamasındaki ilk iki farklı model seçildi: {listing}."
+    return f"Yedinci haftada hiperparametre araması için PR-AUC sıralamasındaki ilk {number_word(len(candidates))} farklı model seçildi: {listing}."
 
 
 def describe_literature_comparison(summary: Summary) -> str:
@@ -237,11 +240,13 @@ def add_method(report: WeeklyReport, summary: Summary) -> None:
         "Sınıf dengesizliği için üç yöntem denendi. Sınıf ağırlıklandırmada azınlık sınıfındaki hatalar daha ağır cezalandırılır. "
         "SMOTE azınlık sınıfı için sentetik örnekler üretir (Chawla vd., 2002). SMOTE ön işlemeden sonra çalıştığı için One-Hot "
         "sütunlarında 0 ile 1 arasında kesirli değerler üretebilir, bunu bu yöntemin bilinen bir sınırı olarak kabul ettik. Üçüncü "
-        "yöntemde model ağırlıksız eğitilir ve kabul kararı için kullanılan olasılık eşiği ayarlanır. Dokuz kombinasyonun (3 model, "
-        f"3 yöntem) hepsi aynı {CV_FOLDS} katlı katmanlı çapraz doğrulamayla eğitildi (Kohavi, 1995).",
+        "yöntemde model ağırlıksız eğitilir ve kabul kararı için kullanılan olasılık eşiği ayarlanır. {number_word(summary['model_count'] * summary['strategy_count'])} kombinasyonun "
+        f"({number_word(summary['model_count'])} model, {number_word(summary['strategy_count'])} yöntem) hepsi aynı {CV_FOLDS} katlı katmanlı çapraz doğrulamayla "
+        "eğitildi (Kohavi, 1995).",
         "Yöntemleri karşılaştırırken esas olarak PR-AUC ve F1-Score değerine baktık (Saito ve Rehmsmeier, 2015). PR-AUC eşikten "
         "bağımsızdır, yani modelin müşterileri kabul olasılığına göre ne kadar iyi sıraladığını gösterir. F1-Score ise bir karar eşiği "
-        "gerektirir ve iki eşikte hesaplandı: varsayılan 0,5 ve çapraz doğrulama dışı (out-of-fold) tahminlerden seçilen eşik.",
+        "gerektirir ve iki eşikte hesaplandı: varsayılan 0,5 ve çapraz doğrulama dışı (out-of-fold) tahminlerden seçilen eşik. Seçilen "
+        "eşikle F1 hesaplanırken eşik, ölçülen katmanın dışındaki katmanlardan seçildi.",
         "Eşik iki ölçütle seçildi. Birincisi F1-Score'u en yüksek yapan eşiktir. Eşit F1 değerlerinde daha yüksek eşik seçildi, çünkü "
         f"bu daha az müşteri aranması demektir. İkincisi, Recall değerini en az {decimal(summary['target_recall'], 2)} yapan "
         "en yüksek eşiktir. Seçim fonksiyonları yalnızca gerçek etiketleri ve out-of-fold olasılıkları alır, test "
@@ -305,7 +310,7 @@ def add_strategy_comparison(report: WeeklyReport, summary: Summary) -> None:
             mean_std_of(summary, model, strategy, "pr_auc"),
             mean_std_of(summary, model, strategy, "recall"),
             mean_std_of(summary, model, strategy, "f1"),
-            mean_std_of(summary, model, strategy, "f1", "summary_at_f1_threshold"),
+            mean_std_of(summary, model, strategy, "f1", "nested_summary_f1_threshold"),
         ]
         for model in MODELS
         for strategy in IMBALANCE_STRATEGIES
@@ -318,7 +323,7 @@ def add_strategy_comparison(report: WeeklyReport, summary: Summary) -> None:
         [3.0, 2.8, 2.6, 2.8, 2.4, 2.4],
     )
     report.add_paragraph(
-        f"{describe_pr_auc_effects(summary)} Etkileri karar eşiğinde görüldü. Sınıf ağırlığı kullanıldığında 0,5 eşiğindeki Recall {describe_recall_changes(summary, IMBALANCE_CLASS_WEIGHT)}. "
+        f"{describe_pr_auc_effects(summary)} Sınıf ağırlığı kullanıldığında 0,5 eşiğindeki Recall {describe_recall_changes(summary, IMBALANCE_CLASS_WEIGHT)}. "
         f"{describe_selected_threshold_f1(summary)}"
     )
     report.add_paragraph(f"{describe_best_strategies(summary)} {describe_tuning_candidates(summary)}")
@@ -340,10 +345,10 @@ def add_threshold_selection(report: WeeklyReport, summary: Summary) -> None:
         rows.append([
             f"{MODEL_LABELS[model]} ({STRATEGY_LABELS[strategy].lower()})",
             decimal(entry["threshold_f1"]["threshold"], 2),
-            mean_std_of(summary, model, strategy, "f1", "summary_at_f1_threshold"),
-            mean_std_of(summary, model, strategy, "recall", "summary_at_f1_threshold"),
+            mean_std_of(summary, model, strategy, "f1", "nested_summary_f1_threshold"),
+            mean_std_of(summary, model, strategy, "recall", "nested_summary_f1_threshold"),
             decimal(entry["threshold_recall"]["threshold"], 2),
-            mean_std_of(summary, model, strategy, "precision", "summary_at_recall_threshold"),
+            mean_std_of(summary, model, strategy, "precision", "nested_summary_recall_threshold"),
         ])
     report.add_heading("4.4. Karar Eşiğinin Seçilmesi")
     report.add_table(
@@ -353,9 +358,9 @@ def add_threshold_selection(report: WeeklyReport, summary: Summary) -> None:
         [4.6, 2.2, 2.4, 2.4, 2.2, 2.2],
     )
     report.add_paragraph(
-        f"Tablodaki F1 ve Recall değerleri, eşik bütün out-of-fold tahminlerden seçildikten sonra her katmanda ayrı hesaplandı. Eşik ile "
-        "değerlendirme aynı tahminlere dayandığı için bu F1 değerleri biraz iyimserdir. Eşiğin gerçek etkisini sekizinci haftada test "
-        "verisinde ölçeceğiz."
+        "Tablodaki F1, Recall ve Precision değerleri için eşik her katmanda, o katman dışındaki katmanların out-of-fold tahminlerinden "
+        "seçildi ve yalnızca o katmanda ölçüldü. Böylece eşik, değerlendirildiği tahminlere bakılmadan seçilmiş oldu. Metindeki tek "
+        "eşik değerleri ise bütün out-of-fold tahminlerden seçildi. Eşiğin gerçek etkisini sekizinci haftada test verisinde ölçeceğiz."
     )
     report.add_paragraph(
         f"En yüksek PR-AUC değerine sahip kombinasyonda ({MODEL_LABELS[best_model]}, {STRATEGY_LABELS[best_strategy].lower()}) F1'i en "
@@ -363,7 +368,7 @@ def add_threshold_selection(report: WeeklyReport, summary: Summary) -> None:
         f"{format_percent(best_experiment['predicted_positive_rate_at_f1_threshold'], 1)} çıktı. Recall değerini en az "
         f"{decimal(summary['target_recall'], 2)} yapan en yüksek eşik {decimal(recall_choice['threshold'], 2)} bulundu. Bu eşikte aranan "
         f"müşteri oranı {format_percent(best_experiment['predicted_positive_rate_at_recall_threshold'], 1)}, aranan müşterilerin "
-        f"gerçekten kabul etme oranı (Precision) {format_percent(best_experiment['summary_at_recall_threshold']['precision']['mean'], 1)} "
+        f"gerçekten kabul etme oranı (Precision) {format_percent(best_experiment['nested_summary_recall_threshold']['precision']['mean'], 1)} "
         "oldu. İki eşik arasındaki seçim, daha az arama yapmakla daha çok kabul eden müşteri yakalamak arasındaki iş kararıdır."
     )
     report.add_figure(
@@ -375,7 +380,7 @@ def add_threshold_selection(report: WeeklyReport, summary: Summary) -> None:
 def add_literature(report: WeeklyReport, summary: Summary) -> None:
     ours = [
         "Bu çalışma (altıncı hafta)",
-        "3 model × 3 strateji, görüşme süresi modelde yok, 5 katlı CV",
+        f"{summary['model_count']} model × {summary['strategy_count']} strateji, görüşme süresi modelde yok, {CV_FOLDS} katlı CV",
         f"{decimal(summary['experiments']['xgboost__none']['summary']['roc_auc']['mean'])} ROC-AUC (XGBoost, ağırlıksız, CV ortalaması)",
     ]
     report.add_heading("4.5. Literatürle Karşılaştırma")
