@@ -72,25 +72,6 @@ def signed(value: float) -> str:
     return f"+{decimal(value, 4)}" if value > 0 else decimal(value, 4)
 
 
-NUMBER_WORDS = ("sıfır", "bir", "iki", "üç", "dört", "beş", "altı", "yedi", "sekiz", "dokuz", "on")
-
-
-def number_word(number: int) -> str:
-    """Düzyazıda küçük sayıları yazıyla verir (iki, üç, dokuz). On'dan büyük sayılar rakamla kalır."""
-    return NUMBER_WORDS[number] if 0 <= number < len(NUMBER_WORDS) else str(number)
-
-
-def lower_first(text: str) -> str:
-    """Cümlenin ilk harfini küçültür. SMOTE gibi tamamı büyük harfli kısaltmaların bozulmaması için ikinci harf büyükse dokunmaz."""
-    if not text or (len(text) > 1 and text[1].isupper()):
-        return text
-    return f"{TURKISH_LOWERCASE.get(text[0], text[0].lower())}{text[1:]}"
-
-
-def signed(value: float) -> str:
-    return f"+{decimal(value, 4)}" if value > 0 else decimal(value, 4)
-
-
 def is_within_noise(comparison: dict[str, float]) -> bool:
     return abs(comparison["mean_difference"]) < comparison["std_difference"]
 
