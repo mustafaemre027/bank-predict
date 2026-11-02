@@ -7,7 +7,6 @@ hiçbir modelde kullanılmaz (Hafta 8'e kadar kilitli).
 from __future__ import annotations
 
 import json
-import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -25,16 +24,24 @@ if str(ROOT) not in sys.path:
 
 from src.data_loader import load_raw, validate_raw
 from src.eda_plots import save_figure
-from src.evaluate import compare_folds, summarize_cv
+from src.evaluate import JSON_DECIMALS, compare_folds, round_metrics, summarize_for_json
 from src.model_plots import plot_pr_roc_curves
-from src.modeling import DEFAULT_THRESHOLD, CrossValidationResult, build_baseline, build_logistic_regression, cross_validate_model, make_cv
+from src.modeling import (
+    DEFAULT_THRESHOLD,
+    CrossValidationResult,
+    build_baseline,
+    build_logistic_regression,
+    cross_validate_model,
+    fold_composition,
+    make_cv,
+)
+from src.notebook_build import write_and_execute_notebook
 from src.config import MONTH_ORDER
 from src.preprocessing import MONTH_FEATURE, build_linear_feature_pipeline, split_train_test
 
 NOTEBOOK_PATH = ROOT / "notebooks" / "03_ilk_model.ipynb"
 FIGURES_DIR = ROOT / "reports" / "figures"
 SUMMARY_PATH = ROOT / "reports" / "haftalik" / "hafta4_ozet.json"
-DECIMALS = 4
 # Eğitim verisindeki payı %2'nin altında kalan aylar birleştirilir. Bu eşik Hafta 3'te az gözlemli bulunan dört ayı
 # (aralık, mart, eylül, ekim) ayırır, sonraki en küçük ay olan ocak yaklaşık %3 paya sahiptir.
 RARE_MONTH_MIN_FREQUENCY = 0.02
@@ -61,22 +68,6 @@ def build_models() -> dict[str, BaseEstimator]:
     }
 
 
-def rounded(metrics: dict[str, float]) -> dict[str, float]:
-    return {name: round(value, DECIMALS) for name, value in metrics.items()}
-
-
-def fold_composition(X: pd.DataFrame, y: pd.Series) -> list[dict[str, Any]]:
-    """Katmanlamanın her katmanda hedef oranını koruduğunu göstermek için katman boyutları ve pozitif oranları."""
-    return [
-        {
-            "train_rows": len(train_index),
-            "validation_rows": len(validation_index),
-            "validation_positive_rate": round(float(y.iloc[validation_index].mean()), DECIMALS),
-        }
-        for train_index, validation_index in make_cv().split(X, y)
-    ]
-
-
 def build_summary(df: pd.DataFrame) -> tuple[dict[str, Any], dict[str, CrossValidationResult], pd.Series]:
     split = split_train_test(df)
     cv = make_cv()
@@ -86,26 +77,22 @@ def build_summary(df: pd.DataFrame) -> tuple[dict[str, Any], dict[str, CrossVali
         "split": {
             "train_rows": len(split.X_train),
             "test_rows": len(split.X_test),
-            "train_positive_rate": round(float(split.y_train.mean()), DECIMALS),
-            "test_positive_rate": round(float(split.y_test.mean()), DECIMALS),
+            "train_positive_rate": round(float(split.y_train.mean()), JSON_DECIMALS),
+            "test_positive_rate": round(float(split.y_test.mean()), JSON_DECIMALS),
             "raw_feature_count": split.X_train.shape[1],
         },
         "cv_folds": fold_composition(split.X_train, split.y_train),
         "threshold": DEFAULT_THRESHOLD,
         # Varsayılan eşikte "kabul eder" denen müşterilerin oranı; düşük Recall'un nedenini rapora sayıyla taşır.
-        "oof_predicted_positive_rate": round(float((results[MAIN_MODEL].oof_proba >= DEFAULT_THRESHOLD).mean()), DECIMALS),
+        "oof_predicted_positive_rate": round(float((results[MAIN_MODEL].oof_proba >= DEFAULT_THRESHOLD).mean()), JSON_DECIMALS),
         "model_feature_count": len(feature_names),
         "rare_month_min_frequency": RARE_MONTH_MIN_FREQUENCY,
         "merged_months": merged_months,
         "models": {
-            name: {
-                "folds": [rounded(metrics) for metrics in result.fold_metrics],
-                "summary": {metric: rounded(values) for metric, values in summarize_cv(result.fold_metrics).to_dict(orient="index").items()},
-            }
-            for name, result in results.items()
+            name: summarize_for_json(result.fold_metrics) for name, result in results.items()
         },
         "comparisons": {
-            name: rounded(compare_folds(results[base].fold_metrics, results[variant].fold_metrics, COMPARISON_METRIC))
+            name: round_metrics(compare_folds(results[base].fold_metrics, results[variant].fold_metrics, COMPARISON_METRIC))
             for name, (base, variant) in COMPARISONS.items()
         },
         "comparison_metric": COMPARISON_METRIC,
@@ -174,16 +161,7 @@ def create_notebook() -> None:
         ),
         nbf.v4.new_code_cell("plot_pr_roc_curves(split.y_train, logistic.oof_proba, logistic.fold_ids, 'Lojistik Regresyon');"),
     ]
-    with NOTEBOOK_PATH.open("w", encoding="utf-8") as file:
-        nbf.write(nb, file)
-
-
-def execute_notebook() -> None:
-    subprocess.run(
-        [sys.executable, "-m", "jupyter", "nbconvert", "--to", "notebook", "--execute", "--inplace", str(NOTEBOOK_PATH)],
-        check=True,
-        cwd=ROOT,
-    )
+    write_and_execute_notebook(nb, NOTEBOOK_PATH)
 
 
 def main() -> None:
@@ -194,7 +172,6 @@ def main() -> None:
     SUMMARY_PATH.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
     save_figures(results, y_train)
     create_notebook()
-    execute_notebook()
     print(f"Özet: {SUMMARY_PATH}\nGrafik: {FIGURES_DIR / 'h4_pr_roc.png'}\nNotebook: {NOTEBOOK_PATH}")
 
 

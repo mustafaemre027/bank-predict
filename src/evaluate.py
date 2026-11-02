@@ -13,6 +13,13 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 
+# Özet JSON'a yazılan sayılar bu basamağa yuvarlanır; iki çalıştırmanın JSON'ları bu sayede birebir karşılaştırılabilir.
+JSON_DECIMALS = 4
+
+
+def round_metrics(metrics: dict[str, float]) -> dict[str, float]:
+    return {name: round(value, JSON_DECIMALS) for name, value in metrics.items()}
+
 
 def compute_metrics(y_true: Sequence[int] | np.ndarray, y_pred: Sequence[int] | np.ndarray, y_proba: Sequence[float] | np.ndarray) -> dict[str, float]:
     """Compute classification metrics for binary targets."""
@@ -64,3 +71,11 @@ def build_comparison_table(summaries: dict[str, pd.DataFrame], metrics: list[str
         for model, summary in summaries.items()
     }
     return pd.DataFrame.from_dict(rows, orient="index")
+
+
+def summarize_for_json(fold_metrics: list[dict[str, float]]) -> dict[str, object]:
+    """Bir modelin katman metriklerini ve ortalama ± std özetini özet JSON'a yazılacak biçimde yuvarlar."""
+    return {
+        "folds": [round_metrics(metrics) for metrics in fold_metrics],
+        "summary": {metric: round_metrics(values) for metric, values in summarize_cv(fold_metrics).to_dict(orient="index").items()},
+    }

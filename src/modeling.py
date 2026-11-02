@@ -5,6 +5,7 @@ Model seçimi ve karşılaştırmalar yalnızca eğitim verisi içinde bu CV dü
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -17,7 +18,7 @@ from sklearn.pipeline import Pipeline
 from xgboost import XGBClassifier
 
 from src.config import CV_FOLDS, RANDOM_STATE
-from src.evaluate import compute_metrics
+from src.evaluate import JSON_DECIMALS, compute_metrics
 from src.preprocessing import build_linear_feature_pipeline, build_tree_feature_pipeline
 
 # Karar eşiği Hafta 6'da OOF tahminlerinden seçilecek; o zamana kadar etiket bazlı metrikler varsayılan eşikle verilir.
@@ -113,6 +114,18 @@ def cross_validate_model(
     return CrossValidationResult(fold_metrics, oof_proba, fold_ids)
 
 
+def fold_composition(X: pd.DataFrame, y: pd.Series) -> list[dict[str, Any]]:
+    """Katmanlamanın her katmanda hedef oranını koruduğunu göstermek için katman boyutları ve pozitif oranları."""
+    return [
+        {
+            "train_rows": len(train_index),
+            "validation_rows": len(validation_index),
+            "validation_positive_rate": round(float(y.iloc[validation_index].mean()), JSON_DECIMALS),
+        }
+        for train_index, validation_index in make_cv().split(X, y)
+    ]
+
+
 __all__ = [
     "DEFAULT_THRESHOLD",
     "LOGISTIC_REGRESSION",
@@ -125,5 +138,6 @@ __all__ = [
     "build_random_forest",
     "build_xgboost",
     "cross_validate_model",
+    "fold_composition",
     "make_cv",
 ]
