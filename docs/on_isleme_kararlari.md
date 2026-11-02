@@ -1,6 +1,6 @@
 # Ön İşleme Karar Taslağı (Hafta 3 → Hafta 4)
 
-> Hazırlayan: Ömer NARÇİÇEĞİ · Durum: **Lojistik Regresyon dalı Hafta 4'te kodlandı** (`src/preprocessing.py`, testleri `tests/test_preprocessing.py`). Ağaç modelleri için ölçeklemesiz dal Hafta 5'te eklenecek.
+> Hazırlayan: Ömer NARÇİÇEĞİ · Durum: **Lojistik Regresyon dalı Hafta 4'te kodlandı** (`src/preprocessing.py`, testleri `tests/test_preprocessing.py`). Ağaç modelleri için ölçeklemesiz dal Hafta 5'te eklendi (`build_tree_preprocessor`).
 > Hafta 4 sonuçları `notebooks/build_ilk_model.py` ile üretilen `reports/haftalik/hafta4_ozet.json` dosyasındadır.
 > Bu belgedeki tüm sayılar `notebooks/build_kesifsel_analiz.py` ile üretilen `reports/haftalik/hafta3_ozet.json` dosyasından alınmıştır.
 
@@ -25,7 +25,7 @@
 | `campaign` | Çarpıklık 4,90. Arama sayısı arttıkça kabul düzenli olarak düşüyor (1 arama %14,60 → 11+ arama %3,93). Aykırılarda (>6) kabul %5,25. | Silinmez. `log1p` + ölçekleme (LR). Monoton ilişki korunur. |
 | `pdays` | Kayıtların %81,74'ünde −1 ("daha önce aranmamış"). Aranmış müşterilerde kabul %23,07, aranmamışlarda %9,16. | Yeni ikili özellik **`was_contacted_before`** (pdays ≠ −1). −1 değeri sayısal olarak anlamsız olduğundan aranmamışlar için `pdays` 0'a çekilir; ilişki bayrakla taşınır. |
 | `previous` | `pdays` ile Spearman korelasyonu 0,986. IQR = 0 olduğu için aranmış her müşteri "aykırı" görünür (%18,26); yalnızca aranmışlar içinde aykırı oranı %5,49. | IQR ile aykırı ayıklaması bu değişkende **uygulanmaz**. `log1p` + ölçekleme. Çoklu doğrusallık nedeniyle LR'de `pdays`/`previous` birlikteliği katsayı yorumunda dikkate alınır; L2 düzenlileştirme kullanılır. |
-| `day` | Zayıf etki (r = −0,053). Ayın gününe göre dalgalı ve doğrusal olmayan bir desen var. | Sayısal olarak kalır (ağaçlar için yeterli). LR'deki katkısı Hafta 5'te ablasyonla kontrol edilir. |
+| `day` | Zayıf etki (r = −0,053). Ayın gününe göre dalgalı ve doğrusal olmayan bir desen var. | Sayısal olarak kalır (ağaçlar için yeterli). Hafta 5 ablasyonu: LR'den çıkarılınca PR-AUC 0,0009, Rastgele Orman'dan çıkarılınca 0,0163, XGBoost'tan çıkarılınca 0,0185 düştü. Değişken tutuldu. |
 
 ## Genel kararlar
 
@@ -37,7 +37,7 @@
 ## Hafta 4'te doğrulanacak açık sorular
 
 1. Yaş grubu özelliği LR'nin PR-AUC değerini CV'de iyileştiriyor mu?
-   **Hafta 4 sonucu:** Küçük bir iyileşme var. PR-AUC ortalama 0,0032 arttı ve 5 katmanın 4'ünde yükseldi, fakat fark katmanlar arası standart sapmanın (0,0052) altında. Özellik modelde tutuldu. Hafta 5 ablasyonunda ağaç modelleriyle birlikte tekrar bakılacak.
+   **Hafta 4 sonucu:** Küçük bir iyileşme var. PR-AUC ortalama 0,0032 arttı ve 5 katmanın 4'ünde yükseldi, fakat fark katmanlar arası standart sapmanın (0,0052) altında. Özellik modelde tutuldu. **Hafta 5 sonucu:** Yaş grubu ağaç modellerine eklendiğinde Rastgele Orman'da PR-AUC 0,0036 düştü, XGBoost'ta değişmedi. Ağaçlarda kullanılmıyor, Lojistik Regresyon'da tutuluyor.
 2. `contact = unknown` ile `month` birlikteliği modelde "dönem etkisi" yaratıyor mu? (Hafta 8 hata analizine taşınabilir.)
    **Durum:** Hafta 8 hata analizine taşındı.
 3. Az gözlemli aylar (aralık, n = 214) için kategori birleştirme gerekli mi?
