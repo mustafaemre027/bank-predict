@@ -22,6 +22,7 @@ ERROR_BAR_CAPSIZE = 4
 MODEL_COLORS = {LOGISTIC_REGRESSION: COLOR_NO, RANDOM_FOREST: COLOR_YES, XGBOOST: "#1baf7a"}
 COMPARISON_METRIC_TITLES = {"pr_auc": "PR-AUC", "roc_auc": "ROC-AUC"}
 HEADROOM_RATIO = 1.25
+LOG_AXIS_MIN_RATIO = 50
 GROUP_WIDTH = 0.8
 # Eşik grafiğindeki eğriler model değil metrik olduğu için model renklerini kullanmaz. Eğriler ağırlık ve çizgi stiliyle ayrılır:
 # optimize edilen F1 koyu ve kalın, Precision ve Recall gri tonunda (düz ve noktalı çizgi).
@@ -183,11 +184,68 @@ def plot_threshold_curves(
     return fig
 
 
+def plot_calibration_curves(panels: list[tuple[str, str, dict[str, list[dict[str, float]]]]]) -> Figure:
+    """Kalibrasyon eğrileri: ortalama tahmin ve gerçek kabul oranı. Köşegen, mükemmel kalibrasyondur.
+
+    panels: (başlık, model, {eğri adı: calibration_summary bins}) listesi. İlk eğri modelin renginde düz çizgi, diğerleri koyu kesikli
+    çizgi olarak çizilir, bu yüzden renge bakmadan da ayırt edilirler.
+    """
+    fig, axes = plt.subplots(1, len(panels), figsize=(4.6 * len(panels), 4.2))
+    for ax, (title, model, curves) in zip(np.atleast_1d(axes), panels):
+        peak = 0.0
+        for index, (curve_name, bins) in enumerate(curves.items()):
+            predicted = [entry["mean_predicted"] for entry in bins]
+            observed = [entry["observed_rate"] for entry in bins]
+            peak = max(peak, *predicted, *observed)
+            style = {"color": MODEL_COLORS[model], "linestyle": "-", "marker": "o"} if index == 0 else {"color": COLOR_TEXT, "linestyle": "--", "marker": "s"}
+            ax.plot(predicted, observed, linewidth=MAIN_LINE_WIDTH, markersize=4, label=curve_name, **style)
+        ax.plot([0, peak], [0, peak], color=COLOR_REFERENCE, linestyle=":", linewidth=1, label="Mükemmel kalibrasyon")
+        ax.set_xlim(0, peak * 1.05)
+        ax.set_ylim(0, peak * 1.05)
+        ax.set_xlabel("Ortalama tahmin edilen olasılık")
+        ax.set_ylabel("Gerçek kabul oranı")
+        ax.set_title(title, loc="left", color=COLOR_TEXT)
+        ax.grid(color=COLOR_GRID, linewidth=0.6)
+        ax.set_axisbelow(True)
+        ax.legend(loc="upper left", fontsize=8)
+    fig.tight_layout()
+    return fig
+
+
+def plot_search_results(searches: list[tuple[str, str, pd.DataFrame, list[str]]]) -> Figure:
+    """Her aday için en etkili parametrelerin değeri ile CV skoru: her nokta bir yapılandırma, en iyisi kenarlıklı.
+
+    searches: (model, model adı, cv_results, parametre adları) listesi.
+    """
+    column_count = max(len(params) for *_, params in searches)
+    fig, axes = plt.subplots(len(searches), column_count, figsize=(4.4 * column_count, 3.6 * len(searches)), squeeze=False)
+    for row, (model, label, cv_results, params) in enumerate(searches):
+        best = cv_results["rank_test_score"] == 1
+        for column, param in enumerate(params):
+            ax = axes[row][column]
+            values = pd.to_numeric(cv_results[f"param_{param}"])
+            ax.scatter(values, cv_results["mean_test_score"], color=MODEL_COLORS[model], s=28, zorder=3)
+            ax.scatter(values[best], cv_results.loc[best, "mean_test_score"], color=MODEL_COLORS[model], edgecolor=COLOR_TEXT, linewidth=1.5, s=70, zorder=4)
+            if values.min() > 0 and values.max() / values.min() >= LOG_AXIS_MIN_RATIO:
+                ax.set_xscale("log")
+            ax.set_xlabel(param.removeprefix("model__"))
+            ax.set_ylabel("PR-AUC (CV)")
+            ax.set_title(label if column == 0 else "", loc="left", color=COLOR_TEXT)
+            ax.grid(color=COLOR_GRID, linewidth=0.6)
+            ax.set_axisbelow(True)
+        for column in range(len(params), column_count):
+            axes[row][column].set_visible(False)
+    fig.tight_layout()
+    return fig
+
+
 __all__ = [
     "MODEL_COLORS",
+    "plot_calibration_curves",
     "plot_model_comparison",
     "plot_pr_curves_overlay",
     "plot_pr_roc_curves",
+    "plot_search_results",
     "plot_strategy_comparison",
     "plot_threshold_curves",
 ]

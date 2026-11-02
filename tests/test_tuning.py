@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 
 from src.modeling import RANDOM_FOREST, XGBOOST, build_model
-from src.tuning import PARAM_SPECS, SPEC_CHOICE, build_distribution, describe_spec, to_python, tune_model
+from src.tuning import PARAM_SPECS, SPEC_CHOICE, build_distribution, describe_spec, most_influential_params, to_python, tune_model
 from tests.test_preprocessing import make_customers
 
 SMALL_ITER = 3
@@ -95,3 +95,25 @@ def test_tuning_does_not_modify_the_estimator_it_was_given(labelled_customers) -
     tune_model(estimator, {"model__n_estimators": ("randint", 5, 10)}, customers, target, n_iter=2)
 
     assert estimator.get_params()["model__n_jobs"] == parameters_before
+
+
+def test_most_influential_params_ranks_numeric_parameters_by_rank_correlation_with_the_score() -> None:
+    cv_results = pd.DataFrame(
+        {
+            "param_model__depth": [1, 2, 3, 4, 5, 6],
+            "param_model__noise": [3, 1, 4, 2, 6, 5],
+            "param_model__constant": [7, 7, 7, 7, 7, 7],
+            "param_model__max_features": ["sqrt", 0.3, "sqrt", 0.5, 0.3, "sqrt"],
+            "mean_test_score": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6],
+        }
+    )
+
+    assert most_influential_params(cv_results, count=2) == ["model__depth", "model__noise"]
+
+
+def test_most_influential_params_skips_parameters_with_missing_numeric_values() -> None:
+    cv_results = pd.DataFrame(
+        {"param_model__max_depth": [None, 8, 12, 16], "param_model__leaf": [1, 2, 3, 4], "mean_test_score": [0.1, 0.2, 0.3, 0.4]}
+    )
+
+    assert most_influential_params(cv_results) == ["model__leaf"]

@@ -3,11 +3,14 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 from src.model_plots import (
+    plot_calibration_curves,
     plot_model_comparison,
     plot_pr_curves_overlay,
     plot_pr_roc_curves,
+    plot_search_results,
     plot_strategy_comparison,
     plot_threshold_curves,
 )
@@ -87,4 +90,34 @@ def test_plot_threshold_curves_draws_three_metric_curves_and_marks_both_selected
     assert len(curves) == 3
     assert len({line.get_linestyle() for line in curves}) == 2
     assert len(markers) == 2
+    plt.close(fig)
+
+
+def test_plot_calibration_curves_draws_each_curve_plus_the_perfect_calibration_line():
+    bins = [{"mean_predicted": 0.1 * step, "observed_rate": 0.09 * step, "count": 10} for step in range(1, 6)]
+
+    fig = plot_calibration_curves([("XGBoost", "xgboost", {"Kalibrasyonsuz": bins, "Kalibre edilmiş": bins}), ("Rastgele Orman", "random_forest", {"Kalibrasyonsuz": bins})])
+
+    first, second = fig.axes
+    assert len(first.lines) == 3
+    assert len(second.lines) == 2
+    assert first.lines[0].get_linestyle() != first.lines[1].get_linestyle()
+    plt.close(fig)
+
+
+def test_plot_search_results_draws_one_point_per_configuration_and_marks_the_best():
+    cv_results = pd.DataFrame(
+        {
+            "param_model__learning_rate": [0.01, 0.05, 0.2, 0.1],
+            "param_model__max_depth": [3, 5, 7, 4],
+            "mean_test_score": [0.40, 0.45, 0.43, 0.44],
+            "rank_test_score": [4, 1, 3, 2],
+        }
+    )
+
+    fig = plot_search_results([("xgboost", "XGBoost", cv_results, ["model__learning_rate", "model__max_depth"])])
+
+    assert len(fig.axes) == 2
+    assert all(len(ax.collections) == 2 for ax in fig.axes)
+    assert [len(collection.get_offsets()) for collection in fig.axes[0].collections] == [4, 1]
     plt.close(fig)

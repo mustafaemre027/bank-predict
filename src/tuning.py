@@ -10,7 +10,7 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-from scipy.stats import loguniform, randint, uniform
+from scipy.stats import loguniform, randint, spearmanr, uniform
 from sklearn.base import BaseEstimator, clone
 from sklearn.model_selection import RandomizedSearchCV
 
@@ -90,6 +90,20 @@ def to_python(value: Any) -> Any:
     return value.item() if isinstance(value, np.generic) else value
 
 
+def most_influential_params(cv_results: pd.DataFrame, count: int = 2) -> list[str]:
+    """Skorla Spearman korelasyonu en yüksek (mutlak değerce) sayısal parametreler. Metin içeren ya da sabit parametreler atlanır."""
+    scores = cv_results["mean_test_score"]
+    correlations = {}
+    for column in cv_results.columns:
+        if not column.startswith("param_"):
+            continue
+        values = pd.to_numeric(cv_results[column], errors="coerce")
+        if values.isna().any() or values.nunique() < 3:
+            continue
+        correlations[column.removeprefix("param_")] = abs(spearmanr(values, scores).statistic)
+    return sorted(correlations, key=correlations.__getitem__, reverse=True)[:count]
+
+
 def tune_model(
     estimator: BaseEstimator,
     param_specs: dict[str, tuple[Any, ...]],
@@ -129,6 +143,7 @@ __all__ = [
     "TuningResult",
     "build_distribution",
     "describe_spec",
+    "most_influential_params",
     "to_python",
     "tune_model",
 ]
