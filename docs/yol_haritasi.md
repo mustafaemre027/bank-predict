@@ -47,7 +47,11 @@ Kaptan haftalık değişebilir. Ekip bilgisi koda sabitlenmez; rapor üreticiye 
 | 2 | Mustafa Emre KAPLAN (230260143) | |
 | 3 | Ömer NARÇİÇEĞİ (230260054) | |
 | 4 | Ömer NARÇİÇEĞİ (230260054) | |
-| 5-10 | Belirlenecek | Her hafta başında bu tabloya yazılır. Mesut ASLAN henüz kaptanlık yapmadı. |
+| 5 | Mesut ASLAN (230260173) | |
+| 6 | Mustafa Emre KAPLAN (230260143) | |
+| 7 | Mesut ASLAN (230260173) | |
+| 8 | Mustafa Emre KAPLAN (230260143) | |
+| 9 | Ömer NARÇİÇEĞİ (230260054) | Proje 9 hafta olarak planlandı, süre kesinleşince 10. hafta kaptanı eklenir. |
 
 ### Kaptanın haftalık kontrol listesi
 
