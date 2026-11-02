@@ -200,9 +200,10 @@ class WeeklyReport:
         self._bold_line("Bölüm 3 - Projenin İlerleme Durumu")
         self._checklist(progress)
 
-    def add_title_block(self) -> None:
+    def add_title_block(self, title: str | None = None) -> None:
+        """title verilmezse haftalık rapor başlığı yazılır; final raporu kendi başlığını verir."""
         self.document.add_paragraph()
-        for line in [*TITLE_LINES, f"{self.week}. HAFTA İLERLEME RAPORU"]:
+        for line in [*TITLE_LINES, title or f"{self.week}. HAFTA İLERLEME RAPORU"]:
             paragraph = self.document.add_paragraph()
             paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
             paragraph.paragraph_format.space_after = Pt(0)
