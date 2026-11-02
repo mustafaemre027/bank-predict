@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from src.evaluate import build_comparison_table, compare_folds, compute_metrics, summarize_cv
+from src.evaluate import build_comparison_table, compare_folds, compute_metrics, is_ablation_candidate, summarize_cv
 
 
 def test_compute_metrics_basic_example():
@@ -70,3 +70,18 @@ def test_build_comparison_table_has_one_row_per_model_with_mean_and_std_per_metr
     assert table.loc["a", ("roc_auc", "std")] == pytest.approx(np.std([0.7, 0.9], ddof=1))
     assert table.loc["b", ("pr_auc", "std")] == 0
     assert ("f1", "mean") not in table.columns
+
+
+@pytest.mark.parametrize(
+    ("comparison", "expected"),
+    [
+        ({"mean_difference": 0.02, "std_difference": 0.005, "folds_improved": 5}, True),
+        ({"mean_difference": 0.02, "std_difference": 0.005, "folds_improved": 4}, True),
+        ({"mean_difference": 0.02, "std_difference": 0.005, "folds_improved": 3}, False),
+        ({"mean_difference": 0.003, "std_difference": 0.005, "folds_improved": 5}, False),
+        ({"mean_difference": -0.02, "std_difference": 0.005, "folds_improved": 0}, False),
+        ({"mean_difference": 0.0, "std_difference": 0.0, "folds_improved": 0}, False),
+    ],
+)
+def test_ablation_candidate_needs_gain_above_noise_in_most_folds(comparison, expected):
+    assert is_ablation_candidate(comparison) is expected

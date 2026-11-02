@@ -20,6 +20,9 @@ JSON_DECIMALS = 4
 def round_metrics(metrics: dict[str, float]) -> dict[str, float]:
     return {name: round(value, JSON_DECIMALS) for name, value in metrics.items()}
 
+# Ablasyon varyantının varsayılan yapılmaya aday olması için gereken en az iyileşen katman sayısı (5 katmanın 4'ü).
+MIN_FOLDS_IMPROVED_FOR_CANDIDATE = 4
+
 
 def compute_metrics(y_true: Sequence[int] | np.ndarray, y_pred: Sequence[int] | np.ndarray, y_proba: Sequence[float] | np.ndarray) -> dict[str, float]:
     """Compute classification metrics for binary targets."""
@@ -79,3 +82,12 @@ def summarize_for_json(fold_metrics: list[dict[str, float]]) -> dict[str, object
         "folds": [round_metrics(metrics) for metrics in fold_metrics],
         "summary": {metric: round_metrics(values) for metric, values in summarize_cv(fold_metrics).to_dict(orient="index").items()},
     }
+
+
+def is_ablation_candidate(comparison: dict[str, float]) -> bool:
+    """Bir varyantın varsayılanı değiştirmeye aday olması için ortalama artışı katmanlar arası std'yi aşmalı ve katmanların çoğunda iyileşme olmalı."""
+    return (
+        comparison["mean_difference"] > 0
+        and comparison["mean_difference"] > comparison["std_difference"]
+        and comparison["folds_improved"] >= MIN_FOLDS_IMPROVED_FOR_CANDIDATE
+    )
