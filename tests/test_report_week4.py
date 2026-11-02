@@ -3,8 +3,9 @@ import json
 import pytest
 from docx import Document
 
-from reports.hafta4_rapor import SUMMARY_PATH, build_report, check_decisions_match_data, describe_comparison, fold_count_text
+from reports.hafta4_rapor import SUMMARY_PATH, build_report, check_decisions_match_data
 from src.formatting import format_number, format_percent
+from src.report_text import describe_comparison, fold_count_text
 from tests.test_report_docx import document_text
 
 CAPTAIN_ID = "230260054"

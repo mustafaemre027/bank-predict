@@ -11,13 +11,24 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from src.formatting import format_number, format_percent, join_names
+from src.report_text import (
+    METRIC_LABELS,
+    MONTH_NAMES_TR,
+    Summary,
+    decimal,
+    describe_comparison,
+    fold_count_text,
+    is_within_noise,
+    mean_of,
+    mean_std,
+    signed,
+)
 from src.report_docx import (
     CAPTAIN_ROLE,
     TEAM,
@@ -25,8 +36,6 @@ from src.report_docx import (
     WeeklyReport,
     report_file_name,
 )
-
-Summary = dict[str, Any]
 
 WEEK = 4
 CAPTAIN_DUTY = "Takım kaptanlığı ve haftalık raporun hazırlanması"
@@ -37,18 +46,6 @@ OUTPUT_DIR = ROOT / "reports" / "haftalik"
 TARGET_ROC_AUC = 0.75
 # Standart sapma ortalamanın %5'inden azsa sonuçların katmandan katmana az değiştiği söylenir.
 SMALL_RELATIVE_SPREAD = 0.05
-
-# Rakamın okunuşuna göre bulunma eki: 1'inde, 2'sinde, 3'ünde, 4'ünde, 5'inde, 6'sında, 7'sinde, 8'inde, 9'unda, 0'ında.
-LOCATIVE_SUFFIXES = {0: "ında", 1: "inde", 2: "sinde", 3: "ünde", 4: "ünde", 5: "inde", 6: "sında", 7: "sinde", 8: "inde", 9: "unda"}
-
-METRIC_LABELS = {
-    "accuracy": "Accuracy",
-    "precision": "Precision",
-    "recall": "Recall",
-    "f1": "F1-Score",
-    "roc_auc": "ROC-AUC",
-    "pr_auc": "PR-AUC",
-}
 
 # Kriterler 3. hafta raporunun "Gelecek Hafta Planı" tablosunda bu hafta için verilen görevlerden türetilmiştir.
 PROGRESS_CRITERIA = [
@@ -123,50 +120,6 @@ REFERENCES = [
     "Saito, T., & Rehmsmeier, M. (2015). The precision-recall plot is more informative than the ROC plot when evaluating binary "
     "classifiers on imbalanced datasets. PLoS ONE, 10(3), e0118432.",
 ]
-
-
-def decimal(value: float, digits: int = 3) -> str:
-    return format_number(value, digits)
-
-
-def mean_std(summary: Summary, model: str, metric: str) -> str:
-    values = summary["models"][model]["summary"][metric]
-    return f"{decimal(values['mean'])} ± {decimal(values['std'])}"
-
-
-def mean_of(summary: Summary, model: str, metric: str) -> float:
-    return summary["models"][model]["summary"][metric]["mean"]
-
-
-def fold_count_text(improved: int, total: int) -> str:
-    """"5 katmanın 4'ünde" gibi, sayının okunuşuna uygun bulunma ekiyle katman ifadesi."""
-    if improved == total:
-        return "katmanların hepsinde"
-    return f"{total} katmanın {improved}'{LOCATIVE_SUFFIXES[improved % 10]}"
-
-
-def signed(value: float) -> str:
-    return f"+{decimal(value, 4)}" if value > 0 else decimal(value, 4)
-
-
-def is_within_noise(comparison: dict[str, float]) -> bool:
-    return abs(comparison["mean_difference"]) < comparison["std_difference"]
-
-
-def describe_comparison(comparison: dict[str, float], change: str) -> str:
-    """Bir karşılaştırmanın sonucunu yön, katman sayısı ve gürültüye göre büyüklüğüyle birlikte cümleye döker."""
-    difference = comparison["mean_difference"]
-    improved = comparison["folds_improved"]
-    folds = "hiçbir katmanda yükselmedi" if improved == 0 else f"{fold_count_text(improved, comparison['fold_count'])} yükseldi"
-    if difference == 0:
-        return f"{change} PR-AUC ortalaması değişmedi ve {folds}."
-    direction = "arttı" if difference > 0 else "azaldı"
-    spread = decimal(comparison["std_difference"], 4)
-    is_small = is_within_noise(comparison)
-    # "Ancak" yalnızca küçük bir iyileşmeyi sınırlarken anlamlı; düşüşten sonra gereksiz bir karşıtlık kurar.
-    lead = "Ancak bu fark" if is_small and difference > 0 else "Bu fark"
-    size = f"{lead}, katmanlardaki farkların standart sapmasından ({spread}) {'küçük' if is_small else 'büyük'}."
-    return f"{change} PR-AUC ortalamada {decimal(abs(difference), 4)} {direction} ve {folds}. {size}"
 
 
 def check_decisions_match_data(summary: Summary) -> None:
@@ -362,9 +315,7 @@ def add_open_questions(report: WeeklyReport, summary: Summary) -> None:
     comparisons = summary["comparisons"]
     age = comparisons["age_group_added"]
     months = comparisons["rare_months_merged"]
-    month_names = {"jan": "ocak", "feb": "şubat", "mar": "mart", "apr": "nisan", "may": "mayıs", "jun": "haziran",
-                   "jul": "temmuz", "aug": "ağustos", "sep": "eylül", "oct": "ekim", "nov": "kasım", "dec": "aralık"}
-    merged = join_names([month_names[month] for month in summary["merged_months"]])
+    merged = join_names([MONTH_NAMES_TR[month] for month in summary["merged_months"]])
     check_decisions_match_data(summary)
     report.add_heading("4.5. Üçüncü Haftadan Kalan Sorular")
     report.add_table(
