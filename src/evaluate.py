@@ -98,6 +98,22 @@ def is_ablation_candidate(comparison: dict[str, float]) -> bool:
     )
 
 
+def fold_metrics_at_threshold(
+    y_true: Sequence[int] | np.ndarray,
+    oof_proba: np.ndarray,
+    fold_ids: np.ndarray,
+    threshold: float,
+) -> list[dict[str, float]]:
+    """OOF olasılıklarından, her CV katmanının metriklerini verilen eşikte hesaplar (eşikten bağımsız ROC-AUC ve PR-AUC dahil)."""
+    y_array = np.asarray(y_true)
+    metrics = []
+    for fold in np.unique(fold_ids):
+        in_fold = fold_ids == fold
+        proba = oof_proba[in_fold]
+        metrics.append(compute_metrics(y_array[in_fold], (proba >= threshold).astype(int), proba))
+    return metrics
+
+
 def fold_composition_for_json(X: pd.DataFrame, y: pd.Series, cv: Any) -> list[dict[str, Any]]:
     """Katmanlamanın her katmanda hedef oranını koruduğunu göstermek için katman boyutları ve pozitif oranları."""
     return [

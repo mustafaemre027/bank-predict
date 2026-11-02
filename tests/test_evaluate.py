@@ -8,6 +8,7 @@ from src.evaluate import (
     compare_folds,
     compute_metrics,
     fold_composition_for_json,
+    fold_metrics_at_threshold,
     is_ablation_candidate,
     min_folds_improved_for_candidate,
     summarize_cv,
@@ -111,3 +112,15 @@ def test_fold_composition_lists_sizes_and_positive_rate_per_fold():
     assert len(composition) == 5
     assert all(fold["train_rows"] == 16 and fold["validation_rows"] == 4 for fold in composition)
     assert all(fold["validation_positive_rate"] == 0.25 for fold in composition)
+
+
+def test_fold_metrics_at_threshold_scores_each_fold_with_the_given_threshold():
+    y_true = np.array([1, 0, 1, 0, 1, 0, 1, 0])
+    proba = np.array([0.9, 0.1, 0.4, 0.2, 0.8, 0.3, 0.6, 0.7])
+    fold_ids = np.array([0, 0, 0, 0, 1, 1, 1, 1])
+
+    folds = fold_metrics_at_threshold(y_true, proba, fold_ids, threshold=0.5)
+
+    assert [fold["recall"] for fold in folds] == [0.5, 1.0]
+    assert [fold["precision"] for fold in folds] == [1.0, 2 / 3]
+    assert folds[0]["roc_auc"] == 1.0
