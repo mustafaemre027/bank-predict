@@ -3,7 +3,13 @@ import inspect
 import numpy as np
 import pytest
 
-from src.threshold import CRITERION_MAX_F1, CRITERION_TARGET_RECALL, select_threshold_for_recall, select_threshold_max_f1
+from src.threshold import (
+    CRITERION_MAX_F1,
+    CRITERION_TARGET_RECALL,
+    select_threshold_for_recall,
+    select_threshold_max_f1,
+    threshold_curves,
+)
 
 # Kabul edenler 0,9 / 0,8 / 0,7 / 0,5 skorlu müşteriler. 0,5 eşiğinde 5 kişi aranır ve 4'ü gerçek kabuldür.
 LABELS = np.array([1, 1, 1, 0, 1, 0, 0, 0, 0, 0])
@@ -75,3 +81,13 @@ def test_selection_accepts_only_labels_and_oof_probabilities(select) -> None:
     parameters = [name for name in inspect.signature(select).parameters if name != "target_recall"]
 
     assert parameters == ["y_true", "oof_proba"]
+
+
+def test_threshold_curves_list_precision_recall_and_f1_per_threshold_in_increasing_order() -> None:
+    curves = threshold_curves(LABELS, SCORES)
+
+    position = list(curves.thresholds).index(0.5)
+    assert list(curves.thresholds) == sorted(curves.thresholds)
+    assert curves.precision[position] == pytest.approx(4 / 5)
+    assert curves.recall[position] == pytest.approx(1.0)
+    assert curves.f1[position] == pytest.approx(2 * 0.8 / 1.8)

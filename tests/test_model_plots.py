@@ -82,8 +82,9 @@ def test_plot_threshold_curves_draws_three_metric_curves_and_marks_both_selected
     fig = plot_threshold_curves(y_true, proba, select_threshold_max_f1(y_true, proba), select_threshold_for_recall(y_true, proba), "Eşik")
 
     (ax,) = fig.axes
-    curves = [line for line in ax.lines if line.get_linestyle() == "-"]
+    curves = [line for line in ax.lines if line.get_linestyle() != "--"]
     markers = [line for line in ax.lines if line.get_linestyle() == "--"]
     assert len(curves) == 3
+    assert len({line.get_linestyle() for line in curves}) == 2
     assert len(markers) == 2
     plt.close(fig)

@@ -7,10 +7,10 @@ import pandas as pd
 from matplotlib.figure import Figure
 from sklearn.metrics import precision_recall_curve, roc_curve
 
-from src.eda_plots import COLOR_GRID, COLOR_NO, COLOR_REFERENCE, COLOR_TEXT, COLOR_YES
+from src.eda_plots import COLOR_GRID, COLOR_MUTED, COLOR_NO, COLOR_REFERENCE, COLOR_TEXT, COLOR_YES
 from src.formatting import format_number
 from src.modeling import LOGISTIC_REGRESSION, RANDOM_FOREST, XGBOOST
-from src.threshold import ThresholdChoice
+from src.threshold import ThresholdChoice, threshold_curves
 
 FOLD_LINE_ALPHA = 0.35
 FOLD_LINE_WIDTH = 0.8
@@ -23,11 +23,12 @@ MODEL_COLORS = {LOGISTIC_REGRESSION: COLOR_NO, RANDOM_FOREST: COLOR_YES, XGBOOST
 COMPARISON_METRIC_TITLES = {"pr_auc": "PR-AUC", "roc_auc": "ROC-AUC"}
 HEADROOM_RATIO = 1.25
 GROUP_WIDTH = 0.8
-# Eşik grafiğindeki üç eğri farklı varlıklardır (metrikler), model renkleriyle karışmasın diye çizgi stilleriyle de ayrılır.
+# Eşik grafiğindeki eğriler model değil metrik olduğu için model renklerini kullanmaz. Eğriler ağırlık ve çizgi stiliyle ayrılır:
+# optimize edilen F1 koyu ve kalın, Precision ve Recall gri tonunda (düz ve noktalı çizgi).
 THRESHOLD_CURVE_STYLES = {
-    "precision": (COLOR_NO, "-", "Precision"),
-    "recall": (COLOR_YES, "-", "Recall"),
-    "f1": ("#1baf7a", "-", "F1-Score"),
+    "f1": (COLOR_TEXT, "-", 2.5, "F1-Score"),
+    "precision": (COLOR_MUTED, "-", 1.6, "Precision"),
+    "recall": (COLOR_MUTED, "-.", 1.6, "Recall"),
 }
 
 
@@ -165,15 +166,11 @@ def plot_threshold_curves(
     title: str,
 ) -> Figure:
     """OOF tahminlerinde eşiğe göre Precision, Recall ve F1 eğrileri; seçilen iki eşik dikey çizgiyle işaretlenir."""
-    y_array = np.asarray(y_true)
-    precision, recall, thresholds = precision_recall_curve(y_array, oof_proba)
-    precision, recall = precision[:-1], recall[:-1]
-    total = precision + recall
-    f1 = np.divide(2 * precision * recall, total, out=np.zeros_like(total), where=total > 0)
+    curves = threshold_curves(y_true, oof_proba)
     fig, ax = plt.subplots(figsize=(6, 4.2))
-    for values, key in ((precision, "precision"), (recall, "recall"), (f1, "f1")):
-        color, linestyle, label = THRESHOLD_CURVE_STYLES[key]
-        ax.plot(thresholds, values, color=color, linestyle=linestyle, linewidth=MAIN_LINE_WIDTH, label=label)
+    for key in THRESHOLD_CURVE_STYLES:
+        color, linestyle, linewidth, label = THRESHOLD_CURVE_STYLES[key]
+        ax.plot(curves.thresholds, getattr(curves, key), color=color, linestyle=linestyle, linewidth=linewidth, label=label)
     # İki eşik birbirine yakın olabildiğinden soldaki etiket çizginin soluna, sağdaki sağına yaslanır ve etiketler üst üste binmez.
     marked = sorted([(f1_choice, "F1 en yüksek"), (recall_choice, "Hedef Recall")], key=lambda item: item[0].threshold)
     for (choice, label), alignment in zip(marked, ("right", "left")):
