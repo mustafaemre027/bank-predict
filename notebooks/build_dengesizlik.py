@@ -8,16 +8,14 @@ from __future__ import annotations
 
 import json
 import sys
-from dataclasses import asdict
-from pathlib import Path
 from itertools import product
-from typing import Any, Callable
+from pathlib import Path
+from typing import Any
 
 import matplotlib
 
 matplotlib.use("Agg")
 import nbformat as nbf
-import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -31,7 +29,6 @@ from src.evaluate import (
     JSON_DECIMALS,
     compare_folds,
     fold_composition_for_json,
-    fold_metrics_at_nested_threshold,
     round_metrics,
     summarize_for_json,
 )
@@ -50,10 +47,11 @@ from src.modeling import (
     build_model,
     cross_validate_model,
     make_cv,
+    nested_threshold_summary,
 )
 from src.notebook_build import write_and_execute_notebook
 from src.preprocessing import split_train_test
-from src.threshold import ThresholdChoice, select_threshold_for_recall, select_threshold_max_f1
+from src.threshold import ThresholdChoice, choice_to_json, select_threshold_for_recall, select_threshold_max_f1
 
 NOTEBOOK_PATH = ROOT / "notebooks" / "05_dengesizlik_esik.ipynb"
 FIGURES_DIR = ROOT / "reports" / "figures"
@@ -71,18 +69,6 @@ def experiment_key(model: str, strategy: str) -> str:
     return f"{model}__{strategy}"
 
 
-def choice_to_json(choice: ThresholdChoice) -> dict[str, Any]:
-    values = asdict(choice)
-    criterion = values.pop("criterion")
-    return {**round_metrics(values), "criterion": criterion}
-
-
-def nested_summary(y_train: pd.Series, result: CrossValidationResult, select: Callable[[np.ndarray, np.ndarray], ThresholdChoice]) -> dict[str, dict[str, float]]:
-    """Eşik her katman için diğer katmanların OOF tahminlerinden seçilir ve o katmanda ölçülür."""
-    folds = fold_metrics_at_nested_threshold(y_train, result.oof_proba, result.fold_ids, lambda labels, scores: select(labels, scores).threshold)
-    return summarize_for_json(folds)["summary"]
-
-
 def describe_experiment(model: str, strategy: str, result: CrossValidationResult, y_train: pd.Series, choices: tuple[ThresholdChoice, ThresholdChoice]) -> dict[str, Any]:
     f1_choice, recall_choice = choices
     return {
@@ -91,8 +77,10 @@ def describe_experiment(model: str, strategy: str, result: CrossValidationResult
         **summarize_for_json(result.fold_metrics),
         "threshold_f1": choice_to_json(f1_choice),
         "threshold_recall": choice_to_json(recall_choice),
-        "nested_summary_f1_threshold": nested_summary(y_train, result, select_threshold_max_f1),
-        "nested_summary_recall_threshold": nested_summary(y_train, result, lambda labels, scores: select_threshold_for_recall(labels, scores, TARGET_RECALL)),
+        "nested_summary_f1_threshold": nested_threshold_summary(y_train, result, lambda labels, scores: select_threshold_max_f1(labels, scores).threshold),
+        "nested_summary_recall_threshold": nested_threshold_summary(
+            y_train, result, lambda labels, scores: select_threshold_for_recall(labels, scores, TARGET_RECALL).threshold
+        ),
         "predicted_positive_rate_at_f1_threshold": round(float((result.oof_proba >= f1_choice.threshold).mean()), JSON_DECIMALS),
         "predicted_positive_rate_at_recall_threshold": round(float((result.oof_proba >= recall_choice.threshold).mean()), JSON_DECIMALS),
     }
