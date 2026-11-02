@@ -9,3 +9,6 @@ data/processed/*
 reports/haftalik/*.md
 reports/haftalik/*.pdf
 reports/haftalik/*.docx
+
+# Çalıştırma süreleri her çalıştırmada değiştiği için tekrar üretilebilirlik karşılaştırmasının dışında tutulur
+reports/haftalik/hafta*_sure.json
