@@ -10,12 +10,14 @@ import json
 import sys
 from dataclasses import asdict
 from pathlib import Path
-from typing import Any
+from itertools import product
+from typing import Any, Callable
 
 import matplotlib
 
 matplotlib.use("Agg")
 import nbformat as nbf
+import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -29,7 +31,7 @@ from src.evaluate import (
     JSON_DECIMALS,
     compare_folds,
     fold_composition_for_json,
-    fold_metrics_at_threshold,
+    fold_metrics_at_nested_threshold,
     round_metrics,
     summarize_for_json,
 )
@@ -62,6 +64,9 @@ MODELS = [LOGISTIC_REGRESSION, RANDOM_FOREST, XGBOOST]
 TUNING_CANDIDATE_COUNT = 2
 
 
+MODEL_STRATEGY_PAIRS = list(product(MODELS, IMBALANCE_STRATEGIES))
+
+
 def experiment_key(model: str, strategy: str) -> str:
     return f"{model}__{strategy}"
 
@@ -72,22 +77,22 @@ def choice_to_json(choice: ThresholdChoice) -> dict[str, Any]:
     return {**round_metrics(values), "criterion": criterion}
 
 
-def summary_at_threshold(y_train: pd.Series, result: CrossValidationResult, threshold: float) -> dict[str, dict[str, float]]:
-    folds = fold_metrics_at_threshold(y_train, result.oof_proba, result.fold_ids, threshold)
+def nested_summary(y_train: pd.Series, result: CrossValidationResult, select: Callable[[np.ndarray, np.ndarray], ThresholdChoice]) -> dict[str, dict[str, float]]:
+    """Eşik her katman için diğer katmanların OOF tahminlerinden seçilir ve o katmanda ölçülür."""
+    folds = fold_metrics_at_nested_threshold(y_train, result.oof_proba, result.fold_ids, lambda labels, scores: select(labels, scores).threshold)
     return summarize_for_json(folds)["summary"]
 
 
-def describe_experiment(model: str, strategy: str, result: CrossValidationResult, y_train: pd.Series) -> dict[str, Any]:
-    f1_choice = select_threshold_max_f1(y_train, result.oof_proba)
-    recall_choice = select_threshold_for_recall(y_train, result.oof_proba, TARGET_RECALL)
+def describe_experiment(model: str, strategy: str, result: CrossValidationResult, y_train: pd.Series, choices: tuple[ThresholdChoice, ThresholdChoice]) -> dict[str, Any]:
+    f1_choice, recall_choice = choices
     return {
         "model": model,
         "strategy": strategy,
         **summarize_for_json(result.fold_metrics),
         "threshold_f1": choice_to_json(f1_choice),
         "threshold_recall": choice_to_json(recall_choice),
-        "summary_at_f1_threshold": summary_at_threshold(y_train, result, f1_choice.threshold),
-        "summary_at_recall_threshold": summary_at_threshold(y_train, result, recall_choice.threshold),
+        "nested_summary_f1_threshold": nested_summary(y_train, result, select_threshold_max_f1),
+        "nested_summary_recall_threshold": nested_summary(y_train, result, lambda labels, scores: select_threshold_for_recall(labels, scores, TARGET_RECALL)),
         "predicted_positive_rate_at_f1_threshold": round(float((result.oof_proba >= f1_choice.threshold).mean()), JSON_DECIMALS),
         "predicted_positive_rate_at_recall_threshold": round(float((result.oof_proba >= recall_choice.threshold).mean()), JSON_DECIMALS),
     }
@@ -112,19 +117,32 @@ def pick_tuning_candidates(ranking: list[dict[str, Any]]) -> list[dict[str, str]
     return [{"model": model, "strategy": strategy} for model, strategy in candidates.items()]
 
 
-def build_summary(df: pd.DataFrame) -> tuple[dict[str, Any], dict[str, CrossValidationResult], pd.Series]:
+def build_strategy_effects(results: dict[str, CrossValidationResult]) -> dict[str, dict[str, float]]:
+    """Her model için, ağırlıksız hâle göre diğer iki stratejinin PR-AUC farkı (strateji - ağırlıksız)."""
+    effects = {}
+    for model, strategy in MODEL_STRATEGY_PAIRS:
+        if strategy == IMBALANCE_NONE:
+            continue
+        unweighted = results[experiment_key(model, IMBALANCE_NONE)].fold_metrics
+        effects[experiment_key(model, strategy)] = round_metrics(compare_folds(unweighted, results[experiment_key(model, strategy)].fold_metrics, COMPARISON_METRIC))
+    return effects
+
+
+def build_summary(df: pd.DataFrame) -> tuple[dict[str, Any], dict[str, CrossValidationResult], dict[str, tuple[ThresholdChoice, ThresholdChoice]], pd.Series]:
     split = split_train_test(df)
     cv = make_cv()
     baseline = cross_validate_model(build_baseline(), split.X_train, split.y_train, cv)
     results = {
         experiment_key(model, strategy): cross_validate_model(build_model(model, strategy), split.X_train, split.y_train, cv)
-        for model in MODELS
-        for strategy in IMBALANCE_STRATEGIES
+        for model, strategy in MODEL_STRATEGY_PAIRS
+    }
+    choices = {
+        key: (select_threshold_max_f1(split.y_train, result.oof_proba), select_threshold_for_recall(split.y_train, result.oof_proba, TARGET_RECALL))
+        for key, result in results.items()
     }
     experiments = {
-        experiment_key(model, strategy): describe_experiment(model, strategy, results[experiment_key(model, strategy)], split.y_train)
-        for model in MODELS
-        for strategy in IMBALANCE_STRATEGIES
+        experiment_key(model, strategy): describe_experiment(model, strategy, results[experiment_key(model, strategy)], split.y_train, choices[experiment_key(model, strategy)])
+        for model, strategy in MODEL_STRATEGY_PAIRS
     }
     ranking = rank_experiments(experiments)
     summary = {
@@ -136,21 +154,17 @@ def build_summary(df: pd.DataFrame) -> tuple[dict[str, Any], dict[str, CrossVali
         "cv_folds": fold_composition_for_json(split.X_train, split.y_train, cv),
         "default_threshold": DEFAULT_THRESHOLD,
         "target_recall": TARGET_RECALL,
+        "model_count": len(MODELS),
+        "strategy_count": len(IMBALANCE_STRATEGIES),
         "baseline": summarize_for_json(baseline.fold_metrics),
         "experiments": experiments,
-        "strategy_effects": {
-            key: round_metrics(compare_folds(results[experiment_key(model, IMBALANCE_NONE)].fold_metrics, results[key].fold_metrics, COMPARISON_METRIC))
-            for model in MODELS
-            for strategy in IMBALANCE_STRATEGIES
-            if strategy != IMBALANCE_NONE
-            for key in [experiment_key(model, strategy)]
-        },
+        "strategy_effects": build_strategy_effects(results),
         "best_by_model": {model: next(entry["strategy"] for entry in ranking if entry["model"] == model) for model in MODELS},
         "ranking": ranking,
         "candidates_for_tuning": pick_tuning_candidates(ranking),
         "comparison_metric": COMPARISON_METRIC,
     }
-    return summary, results, split.y_train
+    return summary, results, choices, split.y_train
 
 
 def strategy_panel(summary: dict[str, Any], title: str, metric: str, summary_key: str) -> tuple[str, dict[str, dict[str, dict[str, float]]]]:
@@ -161,19 +175,22 @@ def strategy_panel(summary: dict[str, Any], title: str, metric: str, summary_key
     return title, values
 
 
-def save_figures(summary: dict[str, Any], results: dict[str, CrossValidationResult], y_train: pd.Series) -> None:
+def save_figures(
+    summary: dict[str, Any],
+    results: dict[str, CrossValidationResult],
+    choices: dict[str, tuple[ThresholdChoice, ThresholdChoice]],
+    y_train: pd.Series,
+) -> None:
     FIGURES_DIR.mkdir(parents=True, exist_ok=True)
     panels = [
         strategy_panel(summary, "PR-AUC", COMPARISON_METRIC, "summary"),
         strategy_panel(summary, "F1-Score (0,5 eşiğinde)", "f1", "summary"),
-        strategy_panel(summary, "F1-Score (OOF'tan seçilen eşikte)", "f1", "summary_at_f1_threshold"),
+        strategy_panel(summary, "F1-Score (OOF'tan seçilen eşikte)", "f1", "nested_summary_f1_threshold"),
     ]
     save_figure(plot_strategy_comparison(panels, MODEL_LABELS, STRATEGY_LABELS), FIGURES_DIR / "h6_strateji_karsilastirma.png")
     best = summary["ranking"][0]
-    experiment = summary["experiments"][best["key"]]
-    f1_choice = select_threshold_max_f1(y_train, results[best["key"]].oof_proba)
-    recall_choice = select_threshold_for_recall(y_train, results[best["key"]].oof_proba, TARGET_RECALL)
-    title = f"{MODEL_LABELS[experiment['model']]}, {STRATEGY_LABELS[experiment['strategy']]}"
+    f1_choice, recall_choice = choices[best["key"]]
+    title = f"{MODEL_LABELS[best['model']]}, {STRATEGY_LABELS[best['strategy']]}"
     save_figure(plot_threshold_curves(y_train, results[best["key"]].oof_proba, f1_choice, recall_choice, title), FIGURES_DIR / "h6_esik_egrisi.png")
 
 
@@ -226,10 +243,10 @@ def create_notebook() -> None:
 def main() -> None:
     df = load_raw()
     validate_raw(df)
-    summary, results, y_train = build_summary(df)
+    summary, results, choices, y_train = build_summary(df)
     SUMMARY_PATH.parent.mkdir(parents=True, exist_ok=True)
     SUMMARY_PATH.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
-    save_figures(summary, results, y_train)
+    save_figures(summary, results, choices, y_train)
     create_notebook()
     print(f"Özet: {SUMMARY_PATH}\nGrafikler: {FIGURES_DIR}\nNotebook: {NOTEBOOK_PATH}")
 
