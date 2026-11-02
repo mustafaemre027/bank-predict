@@ -48,6 +48,13 @@ def fold_count_text(improved: int, total: int) -> str:
     return f"{total} katmanın {improved}'{LOCATIVE_SUFFIXES[improved % 10]}"
 
 
+def lower_first(text: str) -> str:
+    """Cümlenin ilk harfini küçültür. SMOTE gibi tamamı büyük harfli kısaltmaların bozulmaması için ikinci harf büyükse dokunmaz."""
+    if len(text) > 1 and text[1].isupper():
+        return text
+    return f"{text[0].lower()}{text[1:]}"
+
+
 def signed(value: float) -> str:
     return f"+{decimal(value, 4)}" if value > 0 else decimal(value, 4)
 
@@ -90,6 +97,7 @@ __all__ = [
     "describe_comparison",
     "fold_count_text",
     "is_within_noise",
+    "lower_first",
     "mean_of",
     "mean_std",
     "signed",
