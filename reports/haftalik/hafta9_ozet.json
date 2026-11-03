@@ -206,7 +206,7 @@
     {
       "criterion": "Test paketi temiz ortamda geçer",
       "met": true,
-      "evidence": "Temiz klonda 344 test geçti (commit 424015e)."
+      "evidence": "Temiz klonda 352 test geçti (commit 0a7dc7b)."
     },
     {
       "criterion": "Üç modelin 5 katlı CV sonuçları ve üç dengesizlik stratejisi raporlanır",
@@ -251,7 +251,7 @@
     {
       "criterion": "Analiz ve rapor betikleri temiz klonda aynı sayıları üretir",
       "met": true,
-      "evidence": "Temiz klonda analiz betikleri depodaki özet JSON dosyalarıyla aynı sayıları üretti (commit 424015e)."
+      "evidence": "Temiz klonda analiz betikleri depodaki özet JSON dosyalarıyla aynı sayıları üretti (commit 0a7dc7b)."
     },
     {
       "criterion": "Her hafta raporu özet JSON'dan üretilir",
