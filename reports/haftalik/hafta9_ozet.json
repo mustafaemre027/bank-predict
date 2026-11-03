@@ -205,8 +205,8 @@
     },
     {
       "criterion": "Test paketi temiz ortamda geçer",
-      "met": false,
-      "evidence": "Temiz klon doğrulaması henüz yapılmadı (reports/haftalik/hafta9_dogrulama.json yok)."
+      "met": true,
+      "evidence": "Temiz klonda 344 test geçti (commit 424015e)."
     },
     {
       "criterion": "Üç modelin 5 katlı CV sonuçları ve üç dengesizlik stratejisi raporlanır",
@@ -250,8 +250,8 @@
     },
     {
       "criterion": "Analiz ve rapor betikleri temiz klonda aynı sayıları üretir",
-      "met": false,
-      "evidence": "Temiz klon doğrulaması henüz yapılmadı (reports/haftalik/hafta9_dogrulama.json yok)."
+      "met": true,
+      "evidence": "Temiz klonda analiz betikleri depodaki özet JSON dosyalarıyla aynı sayıları üretti (commit 424015e)."
     },
     {
       "criterion": "Her hafta raporu özet JSON'dan üretilir",

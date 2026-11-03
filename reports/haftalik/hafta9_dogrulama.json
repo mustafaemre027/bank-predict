@@ -1,0 +1,16 @@
+{
+  "commit": "424015e376fb1024d9e13b7a7dbadf681732fdef",
+  "tests_passed": true,
+  "test_count": 344,
+  "numbers_match": true,
+  "compared_files": [
+    "hafta2_ozet.json",
+    "hafta3_ozet.json",
+    "hafta4_ozet.json",
+    "hafta5_ozet.json",
+    "hafta6_ozet.json",
+    "hafta7_ozet.json",
+    "hafta8_ozet.json",
+    "hafta9_ozet.json"
+  ]
+}
