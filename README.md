@@ -20,6 +20,7 @@ Bu proje, bankanın pazarlama kampanyasında müşteri yanıtını tahmin etmeyi
 ## Klasör Yapısı
 ```text
 bank-predict/
+├── app/
 ├── data/
 │   ├── raw/
 │   └── processed/
@@ -31,10 +32,12 @@ bank-predict/
 │   └── haftalik/
 ├── src/
 ├── tests/
+├── .streamlit/
 ├── .github/
 ├── .gitignore
 ├── README.md
 ├── requirements.txt
+├── run_all.py
 └── .venv/
 ```
 
@@ -97,10 +100,27 @@ python reports/hafta7_rapor.py --kaptan 230260173
 python notebooks/build_final_degerlendirme.py
 python reports/hafta8_rapor.py --kaptan 230260143
 
-# Final raporu iskeleti (9. hafta sonuçları gelene kadar yalnızca taslak üretilir)
-python reports/final_rapor.py --kaptan 230260054 --taslak
+# Hafta 9 model kaydı, tahmin servisi ve kabul kriterleri: modeli models/ altına yazar, özet JSON üretir (yaklaşık 1 dakika)
+python notebooks/build_model_kaydi.py
+python reports/hafta9_rapor.py --kaptan 230260054
+
+# Final raporu (Hafta 2-9 özetlerinden, Ek-A kabul kriterleri tablosuyla)
+python reports/final_rapor.py --kaptan 230260054
 ```
 Rapor `reports/haftalik/` altına yazılır ve repoya eklenmez. Rapordaki tüm sayılar o haftanın `reports/haftalik/haftaN_ozet.json` dosyasından okunur.
+
+## Tek Komutla Yeniden Üretim
+```bash
+python run_all.py
+```
+Hafta 2'den 9'a tüm analiz betiklerini sırayla çalıştırır ve `reports/haftalik/` altındaki özet JSON dosyalarını yeniden üretir (yaklaşık 10 dakika). Model dosyası `models/final_model.joblib` da bu sırada oluşur ve repoya eklenmez.
+
+## Arayüzü Çalıştırma
+Önce model dosyası üretilmiş olmalıdır (`python notebooks/build_model_kaydi.py` ya da `python run_all.py`).
+```bash
+streamlit run app/streamlit_app.py
+```
+Arayüzde tek müşteri için kabul olasılığı, karar, olasılık bandı ve ilk üç etken görülür. Toplu CSV sekmesi `bank-full.csv` düzenindeki dosyayı olasılığa göre sıralar. Arayüzde kimlik doğrulama yoktur, yerel kullanım için tasarlanmıştır.
 
 ## Haftalık İlerleme
 | Hafta | Durum |
@@ -113,4 +133,4 @@ Rapor `reports/haftalik/` altına yazılır ve repoya eklenmez. Rapordaki tüm s
 | H6 | ✓ |
 | H7 | ✓ |
 | H8 | ✓ |
-| H9 | Planlandı |
+| H9 | ✓ |
