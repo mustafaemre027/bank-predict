@@ -173,7 +173,7 @@ GitHub deposu ve Python ortamı kuruldu. `bank-full.csv` indirilip testlerle do�
 - **Bitti tanımı:** FOG-1 karşılandı ya da karşılanmadıysa nedeni ve sonraki adım raporlandı. Literatürle karşılaştırma yapıldı (Moro vd. 2014'ün farklı veri sürümü notuyla).
 - **Sonuç:** Final model XGBoost (ağırlıksız, isotonic kalibre) test setinde bir kez değerlendirildi: ROC-AUC 0,808, PR-AUC 0,472, FOG-1 karşılandı. Seçilen eşikte (0,24) Recall 0,534 ve Precision 0,462, Recall hedefli eşikte (0,09) Recall 0,716. Olasılığı en yüksek %10 müşteri aranınca kabul edenlerin %45,4'ü yakalanıyor (lift 4,54). Zamana göre ayrılmış son %20 kayıtta ROC-AUC 0,601'e düştü. Bu kısımda kabul oranı %31,6, eğitim kısmında %6,7 ve modelin en önemli değişkenleri arasında `month` ile `day` var. Bu varsayım sınanmadı. Permutation importance'ta ilk üç değişken `month`, `poutcome`, `contact`. Lojistik Regresyon ile ilk beşte üç ortak değişken var. Kaçırılan kabul edenlerin %82,8'i `poutcome = unknown`. `contact = unknown` grubunda PR-AUC 0,118, mayıs-haziranda 0,334. Lojistik Regresyon, H7'de aranmadığı için H4-H6 varsayılan yapılandırmasıyla eğitildi. Sayılar `reports/haftalik/hafta8_ozet.json` dosyasından.
 
-### Hafta 9 — Tahmin Servisi, Arayüz, Final Rapor ve Sunum
+### Hafta 9 — Tahmin Servisi, Arayüz, Final Rapor ve Sunum ✓
 
 | Üye | Görev |
 |---|---|
@@ -193,3 +193,4 @@ GitHub deposu ve Python ortamı kuruldu. `bank-full.csv` indirilip testlerle do�
   - Temiz ve etiketlenmiş depo sürümü
   - Hafta 9 raporu
 - **Bitti tanımı:** FG-7 ve FG-11 tamam; arayüzde uçtan uca demo senaryosu çalışıyor; Streamlit sürümü `requirements.txt`'te sabit ve `/guncelle` ile denetlendi. PRD'deki 13 kabul kriterinin her biri için kanıt (test, tablo ya da ekran görüntüsü) final raporunda gösterildi.
+- **Sonuç:** Final model `models/final_model.joblib` paketine (pipeline, karar eşiği 0,24, eğitim kabul oranı 0,117) kaydedildi, yeniden yüklenen modelin test metrikleri H8 ile 4 ondalıkta aynı. Tahmin servisi (`src/predict_service.py`) olasılık, etiket, olasılık bandı ve ilk üç etkeni döndürür. Girdi `src/schemas.py` içinde Pydantic ile doğrulanır, hata mesajları Türkçedir ve `duration` kabul edilmez. Streamlit arayüzü (`app/streamlit_app.py`) tek müşteri ve toplu CSV sekmeleriyle çalışır. Tek tahmin süresi 1 saniyenin altındadır. `/security-review` yüksek ve orta düzeyde bulgu vermedi, arayüzde kimlik doğrulama olmaması kapsam dışı not edildi. `python run_all.py` tüm analizleri sırayla üretir. Ekip dışı bir kişiyle kullanılabilirlik denemesi (FOG-4) yapılacaktır. Sayılar `reports/haftalik/hafta9_ozet.json` dosyasından.

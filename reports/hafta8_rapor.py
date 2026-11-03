@@ -329,10 +329,10 @@ def add_project_management(report: WeeklyReport) -> None:
     report.add_table("Gelecek hafta planı", ["Takım Üyesi", "Planlanan Çalışma"], [list(row) for row in NEXT_WEEK], [4.5, 11.5])
 
 
-def add_test_results(report: WeeklyReport, summary: Summary) -> None:
+def add_test_results(report: WeeklyReport, summary: Summary, section: str = "4.1") -> None:
     evaluations, cv = summary["test_metrics"], summary["selected"]["oof_summary"]
     metrics = evaluations["selected"]["metrics"]
-    report.add_heading("4.1. Final Modelin Test Sonuçları")
+    report.add_heading(f"{section}. Final Modelin Test Sonuçları")
     report.add_paragraph(
         f"Final model {summary['literature']['model_label']} olup {'kalibre edilmiş' if summary['selected']['calibrated'] else 'kalibre edilmemiş'} olasılıklarla çalışıyor. Test verisinde "
         f"{format_number(summary['split']['test_rows'])} kayıt bulunuyor ve kabul oranı {percent(summary['split']['test_positive_rate'])}. "
@@ -372,10 +372,10 @@ def add_test_results(report: WeeklyReport, summary: Summary) -> None:
     report.add_figure(FIGURES_DIR / "h8_test_pr_roc.png", "Test verisinde Precision-Recall ve ROC eğrileri")
 
 
-def add_confusion(report: WeeklyReport, summary: Summary) -> None:
+def add_confusion(report: WeeklyReport, summary: Summary, section: str = "4.2") -> None:
     counts, selected = summary["confusion"], summary["test_metrics"]["selected"]
     positives = counts["tp"] + counts["fn"]
-    report.add_heading("4.2. Karmaşıklık Matrisi")
+    report.add_heading(f"{section}. Karmaşıklık Matrisi")
     report.add_table(
         f"Seçilen eşikte ({threshold_text(selected['threshold'])}) test verisi karmaşıklık matrisi",
         ["Gerçek sınıf", "Kabul etmez olarak tahmin", "Kabul eder olarak tahmin"],
@@ -394,10 +394,10 @@ def add_confusion(report: WeeklyReport, summary: Summary) -> None:
     report.add_figure(FIGURES_DIR / "h8_karmasiklik.png", "Seçilen eşikte test verisi karmaşıklık matrisi (hücrelerde sayı ve gerçek sınıf içindeki pay)")
 
 
-def add_gain(report: WeeklyReport, summary: Summary) -> None:
+def add_gain(report: WeeklyReport, summary: Summary, section: str = "4.3") -> None:
     rows = summary["gain_table"]
     first, last = rows[0], rows[-1]
-    report.add_heading("4.3. Kazanç Tablosu")
+    report.add_heading(f"{section}. Kazanç Tablosu")
     report.add_table(
         "Müşteriler kabul olasılığına göre sıralanıp ilk dilimler arandığında yakalanan kabul edenler",
         ["Aranan pay", "Aranan müşteri", "Yakalanan kabul eden", "Yakalama oranı", "Lift"],
@@ -421,9 +421,9 @@ def add_gain(report: WeeklyReport, summary: Summary) -> None:
     report.add_figure(FIGURES_DIR / "h8_kazanc.png", "Kümülatif kazanç eğrisi: aranan müşteri payına göre yakalanan kabul eden payı")
 
 
-def add_time_based(report: WeeklyReport, summary: Summary) -> None:
+def add_time_based(report: WeeklyReport, summary: Summary, section: str = "4.4") -> None:
     time_based, random_metrics = summary["time_based"], summary["test_metrics"]["selected"]["metrics"]
-    report.add_heading("4.4. Zamana Göre Ayrılmış Test")
+    report.add_heading(f"{section}. Zamana Göre Ayrılmış Test")
     report.add_paragraph(
         f"Veri dosyası tarih sırasındadır. Final yapılandırma ilk {format_number(time_based['train_rows'])} satırda eğitildi ve son "
         f"{format_number(time_based['test_rows'])} satırda ölçüldü. Bu son kısımdaki kayıtların {format_number(time_based['overlap_with_random_test'])} tanesi "
@@ -441,8 +441,8 @@ def add_time_based(report: WeeklyReport, summary: Summary) -> None:
     report.add_paragraph(f"{describe_time_based(summary)}{describe_time_drop_hint(summary)}")
 
 
-def add_importance(report: WeeklyReport, summary: Summary) -> None:
-    report.add_heading("4.5. Değişken Önemleri")
+def add_importance(report: WeeklyReport, summary: Summary, section: str = "4.5") -> None:
+    report.add_heading(f"{section}. Değişken Önemleri")
     report.add_paragraph(
         "Permutation importance değerleri final modelin test verisindeki PR-AUC düşüşü olarak ölçüldü. Değer ne kadar büyükse model o değişkene "
         "o kadar çok dayanıyor. Lojistik Regresyon katsayıları ayrı bir modele aittir ve ölçeklenmiş sayısal değişkenler ile One-Hot sütunları için log-odds cinsindendir."
@@ -473,14 +473,14 @@ def add_importance(report: WeeklyReport, summary: Summary) -> None:
     )
 
 
-def add_error_analysis(report: WeeklyReport, summary: Summary) -> None:
+def add_error_analysis(report: WeeklyReport, summary: Summary, section: str = "4.6") -> None:
     counts = summary["confusion"]
     rows = [
         [column, row["category"], percent(row["false_negative_share"]), percent(row["true_positive_share"])]
         for column in ERROR_TABLE_COLUMNS
         for row in summary["error_profile"][column]
     ]
-    report.add_heading("4.6. Hata Analizi")
+    report.add_heading(f"{section}. Hata Analizi")
     report.add_paragraph(
         f"Seçilen eşikte {format_number(counts['fn'])} kabul eden müşteri kaçırıldı ve {format_number(counts['tp'])} kabul eden yakalandı. "
         "Aşağıdaki tabloda bu iki grubun seçili değişkenlerdeki dağılımı verilmiştir. Paylar her grubun kendi toplamına göre hesaplandı."
@@ -504,8 +504,8 @@ def add_error_analysis(report: WeeklyReport, summary: Summary) -> None:
     report.add_paragraph(describe_groups(summary))
 
 
-def add_literature(report: WeeklyReport, summary: Summary) -> None:
-    report.add_heading("4.7. Literatürle Karşılaştırma")
+def add_literature(report: WeeklyReport, summary: Summary, section: str = "4.7") -> None:
+    report.add_heading(f"{section}. Literatürle Karşılaştırma")
     report.add_paragraph(describe_literature(summary))
 
 

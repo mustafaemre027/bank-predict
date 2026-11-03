@@ -31,7 +31,7 @@ def create_notebook() -> None:
     target_counts = df["y"].value_counts()
     target_pct = df["y"].value_counts(normalize=True) * 100
     unknown_counts = {col: int((df[col] == "unknown").sum()) for col in df.columns}
-    unknown_series = pd.Series(unknown_counts).sort_values(ascending=False)
+    unknown_series = pd.Series(unknown_counts).sort_values(ascending=False, kind="stable")
     pdays_minus_one = int((df["pdays"] == -1).sum())
     duplicate_rows = int(df.duplicated().sum())
     duration_by_target = df.groupby("y")["duration"].mean()
@@ -188,7 +188,7 @@ def create_notebook() -> None:
         ),
         nbf.v4.new_code_cell(
             "unknown_counts = {col: int((df[col] == 'unknown').sum()) for col in df.columns}\n"
-            "unknown_series = pd.Series(unknown_counts).sort_values(ascending=False)\n"
+            "unknown_series = pd.Series(unknown_counts).sort_values(ascending=False, kind='stable')\n"
             "print('Unknown counts:', unknown_series.to_dict())\n"
             "fig, ax = plt.subplots(figsize=(10, 6))\n"
             "unknown_series.plot(kind='barh', ax=ax, color='#E76F51')\n"
