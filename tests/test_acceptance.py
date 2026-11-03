@@ -4,11 +4,12 @@ import json
 import pytest
 
 from reports.final_rapor import ACCEPTANCE_CRITERIA
-from src.acceptance import CRITERION_COUNT, NOT_VERIFIED, evaluate_acceptance
+from src.acceptance import CRITERION_COUNT, NOT_VERIFIED, evaluate_acceptance, validate_verification
 from src.config import PROJECT_ROOT
 
 HAFTALIK_DIR = PROJECT_ROOT / "reports" / "haftalik"
-VERIFICATION = {"commit": "abcdef1234567", "tests_passed": True, "test_count": 300, "numbers_match": True}
+COMPARED_FILES = sorted(path.name for path in HAFTALIK_DIR.glob("hafta*_ozet.json"))
+VERIFICATION = {"commit": "abcdef1234567", "tests_passed": True, "test_count": 300, "numbers_match": True, "compared_files": COMPARED_FILES}
 TIMING = {"single_prediction_seconds": 0.04}
 CLEAN_CLONE_INDEXES = (2, 11)
 FIRST_ANALYSIS_WEEK, LAST_ANALYSIS_WEEK = 2, 8
@@ -83,3 +84,27 @@ def test_missing_weekly_summary_fails_criterion_thirteen(summaries) -> None:
     changed = {week: value for week, value in summaries.items() if week != 3}
 
     assert not evaluate_acceptance(changed, True, TIMING, VERIFICATION)[12].met
+
+
+@pytest.mark.parametrize("field", ["commit", "tests_passed", "test_count", "numbers_match", "compared_files"])
+def test_verification_with_a_missing_field_is_rejected(field) -> None:
+    incomplete = {key: value for key, value in VERIFICATION.items() if key != field}
+
+    with pytest.raises(ValueError, match=field):
+        validate_verification(incomplete)
+
+
+def test_verification_with_a_wrong_field_type_is_rejected() -> None:
+    with pytest.raises(ValueError, match="tests_passed"):
+        validate_verification({**VERIFICATION, "tests_passed": "evet"})
+
+
+def test_verification_that_skips_a_summary_file_is_rejected() -> None:
+    skipping_week_eight = {**VERIFICATION, "compared_files": [name for name in COMPARED_FILES if name != "hafta8_ozet.json"]}
+
+    with pytest.raises(ValueError, match="hafta8_ozet.json"):
+        validate_verification(skipping_week_eight)
+
+
+def test_complete_verification_is_accepted() -> None:
+    validate_verification(VERIFICATION)

@@ -30,6 +30,26 @@ class Acceptance:
     evidence: str
 
 
+VERIFICATION_FIELDS = {"commit": str, "tests_passed": bool, "test_count": int, "numbers_match": bool, "compared_files": list}
+
+
+def validate_verification(verification: dict[str, Any], root: Path = PROJECT_ROOT) -> None:
+    """Temiz klon doğrulama dosyasının alanlarını ve karşılaştırılan dosya listesini denetler.
+
+    Dosyayı kod üretmediği için yanlış ya da eksik bir kayıt sessizce "doğrulandı" sayılmasın diye hata verilir.
+    """
+    missing = [field for field in VERIFICATION_FIELDS if field not in verification]
+    if missing:
+        raise ValueError(f"hafta9_dogrulama.json eksik alanlar içeriyor: {', '.join(missing)}.")
+    wrong_type = [field for field, expected in VERIFICATION_FIELDS.items() if not isinstance(verification[field], expected)]
+    if wrong_type:
+        raise ValueError(f"hafta9_dogrulama.json alan tipleri geçersiz: {', '.join(wrong_type)}.")
+    existing = {path.name for path in (root / "reports" / "haftalik").glob("hafta*_ozet.json")}
+    not_compared = sorted(existing - set(verification["compared_files"]))
+    if not_compared:
+        raise ValueError(f"hafta9_dogrulama.json şu özet dosyalarını karşılaştırmamış: {', '.join(not_compared)}.")
+
+
 def _clean_clone(verification: dict[str, Any] | None, key: str, message: str) -> Acceptance:
     if verification is None:
         return Acceptance(False, NOT_VERIFIED)
@@ -47,6 +67,8 @@ def evaluate_acceptance(
     week2, week5, week6, week8 = summaries[2], summaries[5], summaries[6], summaries[8]
     metrics = week8["test_metrics"]["selected"]["metrics"]
     shape = week2["dataset_shape"]
+    if verification is not None:
+        validate_verification(verification, root)
     prediction_seconds = None if timing is None else timing["single_prediction_seconds"]
     report_files = [root / "reports" / f"hafta{week}_rapor.py" for week in REPORT_WEEKS]
     return [
