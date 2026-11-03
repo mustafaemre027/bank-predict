@@ -39,6 +39,6 @@
 1. Yaş grubu özelliği LR'nin PR-AUC değerini CV'de iyileştiriyor mu?
    **Hafta 4 sonucu:** Küçük bir iyileşme var. PR-AUC ortalama 0,0032 arttı ve 5 katmanın 4'ünde yükseldi, fakat fark katmanlar arası standart sapmanın (0,0052) altında. Özellik modelde tutuldu. **Hafta 5 sonucu:** Yaş grubu ağaç modellerine eklendiğinde Rastgele Orman'da PR-AUC 0,0036 düştü, XGBoost'ta değişmedi. Ağaçlarda kullanılmıyor, Lojistik Regresyon'da tutuluyor.
 2. `contact = unknown` ile `month` birlikteliği modelde "dönem etkisi" yaratıyor mu? (Hafta 8 hata analizine taşınabilir.)
-   **Durum:** Hafta 8 hata analizine taşındı.
+   **Durum:** Hafta 8 hata analizine taşındı. **Hafta 8 sonucu:** `contact = unknown` grubunda test PR-AUC 0,118 (kabul oranı %3,9), `cellular` grubunda 0,505. Mayıs-haziran döneminde PR-AUC 0,334, diğer aylarda 0,520. Kaçırılan kabul edenlerin %19,9'u `contact = unknown`, yakalananların %0,9'u. Zamana göre ayrılmış testte ROC-AUC 0,601'e düştü. Model dönem etkisine duyarlı görünüyor ama nedeni ayrıca sınanmadı.
 3. Az gözlemli aylar (aralık, n = 214) için kategori birleştirme gerekli mi?
    **Hafta 4 sonucu:** Gerekli değil. Eğitim verisindeki payı %2'nin altında kalan aralık, mart, ekim ve eylül tek kategoride birleştirildiğinde PR-AUC ortalama 0,0008 düştü ve yalnızca 1 katmanda yükseldi. Aylar ayrı kategoriler olarak kalıyor.

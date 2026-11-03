@@ -14,7 +14,7 @@
 | 5 | 4 Kas | Modelleme | RF ve XGBoost; üç modelin CV karşılaştırması | ✓ |
 | 6 | 11 Kas | Modelleme | Sınıf dengesizliği stratejileri ve eşik seçimi | ✓ |
 | 7 | 18 Kas | Modelleme | Hiperparametre optimizasyonu ve kalibrasyon kontrolü | ✓ |
-| 8 | 25 Kas | Değerlendirme | Final model seçimi, tek seferlik test, açıklanabilirlik, kazanç ve hata analizi | ○ |
+| 8 | 25 Kas | Değerlendirme | Final model seçimi, tek seferlik test, açıklanabilirlik, kazanç ve hata analizi | ✓ |
 | 9 | 2 Ara | Yayılım | Model kaydı, tahmin servisi, Streamlit arayüzü, güvenlik incelemesi, final raporu, sunum, depo temizliği | ○ |
 
 ```mermaid
@@ -156,7 +156,7 @@ GitHub deposu ve Python ortamı kuruldu. `bank-full.csv` indirilip testlerle do�
   - Hafta 7 raporu
 - **Bitti tanımı:** FG-5 tamam; seçilecek aday model ve eşik belirlendi (henüz test setine bakılmadı).
 
-### Hafta 8 — Final Değerlendirme ve Açıklanabilirlik
+### Hafta 8 — Final Değerlendirme ve Açıklanabilirlik ✓
 
 | Üye | Görev |
 |---|---|
@@ -171,6 +171,7 @@ GitHub deposu ve Python ortamı kuruldu. `bank-full.csv` indirilip testlerle do�
   - Hata analizi
   - Hafta 8 raporu
 - **Bitti tanımı:** FOG-1 karşılandı ya da karşılanmadıysa nedeni ve sonraki adım raporlandı. Literatürle karşılaştırma yapıldı (Moro vd. 2014'ün farklı veri sürümü notuyla).
+- **Sonuç:** Final model XGBoost (ağırlıksız, isotonic kalibre) test setinde bir kez değerlendirildi: ROC-AUC 0,808, PR-AUC 0,472, FOG-1 karşılandı. Seçilen eşikte (0,24) Recall 0,534 ve Precision 0,462, Recall hedefli eşikte (0,09) Recall 0,716. Olasılığı en yüksek %10 müşteri aranınca kabul edenlerin %45,4'ü yakalanıyor (lift 4,54). Zamana göre ayrılmış son %20 kayıtta ROC-AUC 0,601'e düştü. Bu kısımda kabul oranı %31,6, eğitim kısmında %6,7 ve modelin en önemli değişkenleri arasında `month` ile `day` var. Bu varsayım sınanmadı. Permutation importance'ta ilk üç değişken `month`, `poutcome`, `contact`. Lojistik Regresyon ile ilk beşte üç ortak değişken var. Kaçırılan kabul edenlerin %82,8'i `poutcome = unknown`. `contact = unknown` grubunda PR-AUC 0,118, mayıs-haziranda 0,334. Lojistik Regresyon, H7'de aranmadığı için H4-H6 varsayılan yapılandırmasıyla eğitildi. Sayılar `reports/haftalik/hafta8_ozet.json` dosyasından.
 
 ### Hafta 9 — Tahmin Servisi, Arayüz, Final Rapor ve Sunum
 

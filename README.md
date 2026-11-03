@@ -93,7 +93,11 @@ python reports/hafta6_rapor.py --kaptan 230260143
 python notebooks/build_hiperparametre.py
 python reports/hafta7_rapor.py --kaptan 230260173
 
-# Final raporu iskeleti (8. ve 9. hafta sonuçları gelene kadar yalnızca taslak üretilir)
+# Hafta 8 final değerlendirme (test seti burada bir kez açılır), açıklanabilirlik ve hata analizi: özet JSON, grafikler ve notebook (yaklaşık 30 saniye)
+python notebooks/build_final_degerlendirme.py
+python reports/hafta8_rapor.py --kaptan 230260143
+
+# Final raporu iskeleti (9. hafta sonuçları gelene kadar yalnızca taslak üretilir)
 python reports/final_rapor.py --kaptan 230260054 --taslak
 ```
 Rapor `reports/haftalik/` altına yazılır ve repoya eklenmez. Rapordaki tüm sayılar o haftanın `reports/haftalik/haftaN_ozet.json` dosyasından okunur.
@@ -108,5 +112,5 @@ Rapor `reports/haftalik/` altına yazılır ve repoya eklenmez. Rapordaki tüm s
 | H5 | ✓ |
 | H6 | ✓ |
 | H7 | ✓ |
-| H8 | Planlandı |
+| H8 | ✓ |
 | H9 | Planlandı |
