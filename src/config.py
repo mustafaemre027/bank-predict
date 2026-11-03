@@ -31,6 +31,30 @@ FOG1_MIN_ROC_AUC = 0.75
 FOG1_MIN_PR_AUC = 0.234
 # Moro vd. (2014) çalışmasındaki AUC. Daha geniş bir veri sürümü ve kayan pencere kullandığı için yalnızca gösterge amaçlıdır.
 LITERATURE_ROC_AUC = 0.794
+# Tahmin servisinin kabul ettiği değerler. Elle yazılmıştır, tests/test_schemas.py bunları ham veriden hesaplanan değerlerle birebir karşılaştırır.
+# Model girdisindeki sütun sırası veri dosyasındaki sıradır.
+FEATURE_COLUMNS = ["age", "job", "marital", "education", "default", "balance", "housing", "loan", "contact", "day", "month", "campaign", "pdays", "previous", "poutcome"]
+CATEGORY_VALUES = {
+    "job": ["admin.", "blue-collar", "entrepreneur", "housemaid", "management", "retired", "self-employed", "services", "student", "technician", "unemployed", "unknown"],
+    "marital": ["divorced", "married", "single"],
+    "education": ["primary", "secondary", "tertiary", "unknown"],
+    "default": ["no", "yes"],
+    "housing": ["no", "yes"],
+    "loan": ["no", "yes"],
+    "contact": ["cellular", "telephone", "unknown"],
+    "month": ["apr", "aug", "dec", "feb", "jan", "jul", "jun", "mar", "may", "nov", "oct", "sep"],
+    "poutcome": ["failure", "other", "success", "unknown"],
+}
+# Veri setinde gözlenen (en küçük, en büyük) değerler.
+NUMERIC_RANGES = {
+    "age": (18, 95),
+    "balance": (-8019, 102127),
+    "day": (1, 31),
+    "campaign": (1, 63),
+    "pdays": (-1, 871),
+    "previous": (0, 275),
+}
+MODEL_PATH = PROJECT_ROOT / "models" / "final_model.joblib"
 MONTH_ORDER = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
 
 __all__ = [
@@ -53,6 +77,10 @@ __all__ = [
     "AGE_LABELS",
     "CV_FOLDS",
     "TARGET_RECALL",
+    "FEATURE_COLUMNS",
+    "CATEGORY_VALUES",
+    "NUMERIC_RANGES",
+    "MODEL_PATH",
     "FOG1_MIN_ROC_AUC",
     "FOG1_MIN_PR_AUC",
     "LITERATURE_ROC_AUC",
