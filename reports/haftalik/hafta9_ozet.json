@@ -1,0 +1,262 @@
+{
+  "bundle": {
+    "model": "xgboost",
+    "strategy": "none",
+    "calibrated": true,
+    "selected": {
+      "reason": "highest_pr_auc",
+      "highest_pr_auc_model": "xgboost",
+      "model": "xgboost",
+      "strategy": "none",
+      "params": {
+        "model__colsample_bytree": 0.7159725093210578,
+        "model__learning_rate": 0.023927528765580644,
+        "model__max_depth": 5,
+        "model__min_child_weight": 3,
+        "model__n_estimators": 766,
+        "model__reg_lambda": 9.25681899206688,
+        "model__subsample": 0.786705157299192
+      },
+      "calibrated": true,
+      "threshold": 0.24354147017002106,
+      "threshold_f1": {
+        "threshold": 0.2435,
+        "precision": 0.4587,
+        "recall": 0.5238,
+        "f1": 0.4891,
+        "criterion": "max_f1"
+      },
+      "threshold_recall": {
+        "threshold": 0.0916,
+        "precision": 0.2863,
+        "recall": 0.7001,
+        "f1": 0.4064,
+        "criterion": "target_recall"
+      },
+      "oof_summary": {
+        "accuracy": {
+          "mean": 0.8945,
+          "std": 0.0027
+        },
+        "precision": {
+          "mean": 0.6491,
+          "std": 0.0302
+        },
+        "recall": {
+          "mean": 0.2141,
+          "std": 0.023
+        },
+        "f1": {
+          "mean": 0.3217,
+          "std": 0.0279
+        },
+        "roc_auc": {
+          "mean": 0.8012,
+          "std": 0.0032
+        },
+        "pr_auc": {
+          "mean": 0.4553,
+          "std": 0.0159
+        }
+      },
+      "nested_summary_f1_threshold": {
+        "accuracy": {
+          "mean": 0.87,
+          "std": 0.0065
+        },
+        "precision": {
+          "mean": 0.4537,
+          "std": 0.018
+        },
+        "recall": {
+          "mean": 0.528,
+          "std": 0.0301
+        },
+        "f1": {
+          "mean": 0.4872,
+          "std": 0.0087
+        },
+        "roc_auc": {
+          "mean": 0.8012,
+          "std": 0.0032
+        },
+        "pr_auc": {
+          "mean": 0.4553,
+          "std": 0.0159
+        }
+      },
+      "nested_summary_recall_threshold": {
+        "accuracy": {
+          "mean": 0.7589,
+          "std": 0.0218
+        },
+        "precision": {
+          "mean": 0.286,
+          "std": 0.0191
+        },
+        "recall": {
+          "mean": 0.7012,
+          "std": 0.0256
+        },
+        "f1": {
+          "mean": 0.4057,
+          "std": 0.0175
+        },
+        "roc_auc": {
+          "mean": 0.8012,
+          "std": 0.0032
+        },
+        "pr_auc": {
+          "mean": 0.4553,
+          "std": 0.0159
+        }
+      },
+      "base_rate": 0.117
+    },
+    "threshold": 0.2435,
+    "base_rate": 0.117
+  },
+  "reload_matches_test": true,
+  "validation_examples": {
+    "valid": {
+      "customer": {
+        "age": 35,
+        "job": "management",
+        "marital": "married",
+        "education": "tertiary",
+        "default": "no",
+        "balance": 2500,
+        "housing": "no",
+        "loan": "no",
+        "contact": "cellular",
+        "day": 12,
+        "month": "mar",
+        "campaign": 1,
+        "pdays": 180,
+        "previous": 2,
+        "poutcome": "success"
+      },
+      "accepted": true
+    },
+    "invalid": {
+      "geçersiz kategori": [
+        "`job` alanı geçersiz. Geçerli değerler: admin., blue-collar, entrepreneur, housemaid, management, retired, self-employed, services, student, technician, unemployed, unknown."
+      ],
+      "aralık dışı sayı": [
+        "`age` alanı 18 ile 95 arasında olmalı."
+      ],
+      "eksik alan": [
+        "`balance` alanı eksik."
+      ],
+      "fazla alan (duration)": [
+        "`duration` alanı kabul edilmiyor. Model yalnızca şemadaki 15 alanı kullanır."
+      ]
+    }
+  },
+  "demo_prediction": {
+    "customer": {
+      "age": 35,
+      "job": "management",
+      "marital": "married",
+      "education": "tertiary",
+      "default": "no",
+      "balance": 2500,
+      "housing": "no",
+      "loan": "no",
+      "contact": "cellular",
+      "day": 12,
+      "month": "mar",
+      "campaign": 1,
+      "pdays": 180,
+      "previous": 2,
+      "poutcome": "success"
+    },
+    "probability": 0.9243,
+    "will_accept": true,
+    "band": "yüksek",
+    "top_factors": [
+      {
+        "feature": "poutcome",
+        "direction": "artırıyor",
+        "effect": 0.2227
+      },
+      {
+        "feature": "month",
+        "direction": "artırıyor",
+        "effect": 0.198
+      },
+      {
+        "feature": "pdays",
+        "direction": "artırıyor",
+        "effect": 0.1461
+      }
+    ]
+  },
+  "acceptance_criteria": [
+    {
+      "criterion": "Ham veri doğrulaması geçer",
+      "met": true,
+      "evidence": "hafta2_ozet.json dataset_shape: 45211 x 17. Test: tests/test_data.py."
+    },
+    {
+      "criterion": "Modele giren özellikler arasında duration yoktur",
+      "met": true,
+      "evidence": "duration, FEATURE_COLUMNS ve CustomerInput şemasında yok. Testler: tests/test_preprocessing.py, tests/test_schemas.py."
+    },
+    {
+      "criterion": "Test paketi temiz ortamda geçer",
+      "met": false,
+      "evidence": "Temiz klon doğrulaması henüz yapılmadı (reports/haftalik/hafta9_dogrulama.json yok)."
+    },
+    {
+      "criterion": "Üç modelin 5 katlı CV sonuçları ve üç dengesizlik stratejisi raporlanır",
+      "met": true,
+      "evidence": "hafta5_ozet.json models (üç model, 5 katlı CV) ve hafta6_ozet.json experiments (3 model x 3 strateji)."
+    },
+    {
+      "criterion": "Test setinde ROC-AUC ≥ 0,75",
+      "met": true,
+      "evidence": "hafta8_ozet.json test_metrics.selected.metrics.roc_auc = 0.8083."
+    },
+    {
+      "criterion": "Test PR-AUC değeri referansın en az 2 katı",
+      "met": true,
+      "evidence": "hafta8_ozet.json test PR-AUC = 0.4722, hedef 0.234."
+    },
+    {
+      "criterion": "Seçilen eşikte test Recall'u referanstan yüksek, karmaşıklık matrisi raporlanır",
+      "met": true,
+      "evidence": "hafta8_ozet.json test Recall = 0.534, referans modelde 0.0. Karmaşıklık matrisi h8_karmasiklik.png."
+    },
+    {
+      "criterion": "Kazanç (gain) tablosu raporlanır",
+      "met": true,
+      "evidence": "hafta8_ozet.json gain_table ve h8_kazanc.png."
+    },
+    {
+      "criterion": "İlk 10 değişken permutation importance ile gösterilir",
+      "met": true,
+      "evidence": "hafta8_ozet.json permutation_importance ve h8_permutation_importance.png."
+    },
+    {
+      "criterion": "Kaydedilen model yeniden yüklendiğinde aynı skorları üretir",
+      "met": true,
+      "evidence": "hafta9_ozet.json reload_matches_test: yüklenen modelin test metrikleri hafta8_ozet.json ile 4 ondalıkta aynı."
+    },
+    {
+      "criterion": "Arayüzde olasılık, etiket ve ilk 3 etken 1 saniyenin altında görünür",
+      "met": true,
+      "evidence": "hafta9_sure.json single_prediction_seconds, 1 saniyenin altında. Ölçüm tahmin servisi çağrısını kapsar, arayüz yalnızca bu çağrıyı gösterir."
+    },
+    {
+      "criterion": "Analiz ve rapor betikleri temiz klonda aynı sayıları üretir",
+      "met": false,
+      "evidence": "Temiz klon doğrulaması henüz yapılmadı (reports/haftalik/hafta9_dogrulama.json yok)."
+    },
+    {
+      "criterion": "Her hafta raporu özet JSON'dan üretilir",
+      "met": true,
+      "evidence": "hafta2-hafta9 özet JSON dosyaları ve reports/hafta3_rapor.py ... hafta9_rapor.py üreticileri mevcut."
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "method": "otomatik güvenlik incelemesi (/security-review komutu)",
+  "high": 0,
+  "medium": 0,
+  "examined": [
+    "Model dosyasının joblib ile yüklenmesi: dosya sabit yoldan ve projenin kendi ürettiği paketten okunuyor, kullanıcı girdisiyle belirlenmiyor",
+    "Arayüzde kullanıcı içeriğinin gösterimi: HTML olarak işlenmiyor, tablolarda düz metin olarak gösteriliyor",
+    "Yüklenen CSV dosyasının işlenmesi: her satır kapalı değer kümelerine ve sayısal aralıklara karşı doğrulanıyor, dinamik çalıştırma yok",
+    "İndirilen CSV dosyası: kullanıcının kendi yüklediği veriyi içerdiği için ayrı bir saldırı yolu yok"
+  ],
+  "not_covered": "Arayüzde kimlik doğrulama yoktur. Uygulama yerel bir araç olarak tasarlandı, ağa açılacaksa ayrıca korunmalıdır."
+}
