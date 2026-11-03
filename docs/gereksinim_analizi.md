@@ -73,11 +73,11 @@ flowchart LR
 | FG-4 | Veri katmanlı olarak %80/%20 bölünmeli; SMOTE, sınıf ağırlıklandırma ve eşik ayarlama denenmeli, SMOTE yalnızca eğitim katmanlarına uygulanmalıdır. | M | Bölmede sınıf oranı ±0,5 puan içinde korunur; SMOTE doğrulama katmanının boyutunu değiştirmez | Birim testi | 4-6 | ✓ (katmanlı bölme H4, stratejiler ve SMOTE testi H6) |
 | FG-5 | LR, RF ve XGBoost modelleri eğitilmeli, hiperparametre optimizasyonu çapraz doğrulama ile yapılmalıdır. | M | Üç model için 5 katlı CV sonuçları; arama PR-AUC'ye göre | CV raporu | 5-7 | ✓ (H5: üç model 5 katlı CV'de eğitildi, H7: iki model için rastgele arama PR-AUC'ye göre yapıldı) |
 | FG-6 | Modeller Precision, Recall, F1, ROC-AUC, PR-AUC ve karmaşıklık matrisi ile karşılaştırılabilmelidir. | M | Tek karşılaştırma tablosu (ortalama ± std) + karmaşıklık matrisi | Birim testi + rapor | 2, 5-8 | ◐ (metrik fonksiyonu H2, CV ortalama ± std tablosu H4, üç modelin karşılaştırma tablosu H5) |
-| FG-7 | Seçilen model kaydedilebilmeli ve yeni müşteri bilgisi girildiğinde kabul olasılığını verebilmelidir. | M | Kaydet-yükle sonrası aynı tahmin; olasılık 0-1 aralığında | Birim testi | 9 | ○ |
+| FG-7 | Seçilen model kaydedilebilmeli ve yeni müşteri bilgisi girildiğinde kabul olasılığını verebilmelidir. | M | Kaydet-yükle sonrası aynı tahmin; olasılık 0-1 aralığında | Birim testi | 9 | ✓ (H9, `src/model_store.py`, `src/predict_service.py`, yeniden yüklenen modelin test metrikleri H8 ile 4 ondalıkta aynı) |
 | FG-8 | Modelin kararını en çok etkileyen değişkenler grafiklerle gösterilebilmelidir. | S | İlk 10 değişken permutation importance grafiği + LR katsayı tablosu | Rapor incelemesi | 8 | ✓ (H8, `src/explain.py`, grafikler ve katsayı tablosu raporda) |
 | FG-9 | Karar eşiği test setinden bağımsız olarak, eğitim verisinin çapraz doğrulama dışı tahminlerinden seçilmelidir. | M | Eşik seçim fonksiyonu yalnızca OOF tahminlerini alır; seçilen eşik ve kriteri raporlanır | Birim testi | 6 | ✓ (H6, `src/threshold.py`) |
 | FG-10 | Sistem olasılığa göre sıralanmış liste için kazanç (gain) / lift tablosu üretmelidir. | S | İlk %10/%20/%30 için yakalanan kabul oranı; elle hesaplanmış örnekle uyumlu | Birim testi | 8 | ✓ (H8, `gain_table`, elle hesaplanmış 10 satırlık örnekle test) |
-| FG-11 | Tahmin servisi girdiyi doğrulamalı; geçersiz kategori veya aralık dışı değer için anlaşılır hata döndürmelidir. | M | Geçersiz alanın adı ve geçerli değerler mesajda yer alır; teknik iz gösterilmez | Birim testi | 9 | ○ |
+| FG-11 | Tahmin servisi girdiyi doğrulamalı; geçersiz kategori veya aralık dışı değer için anlaşılır hata döndürmelidir. | M | Geçersiz alanın adı ve geçerli değerler mesajda yer alır; teknik iz gösterilmez | Birim testi | 9 | ✓ (H9, `src/schemas.py`, Türkçe hata mesajları, teknik iz gösterilmez) |
 | FG-12 | Haftalık rapor, sayıları koddan üretilen özet dosyasından alınarak ders şablonuna uygun biçimde otomatik üretilmelidir; kaptan parametre olarak verilmelidir. | S | `--kaptan` ile .docx üretilir; başlıklar, numaralı tablolar/şekiller ve JSON sayıları metinde | Birim testi | 3 | ✓ |
 | FG-13 | Keşifsel analiz, değişken-hedef ilişkilerini etki büyüklüğüyle birlikte raporlamalıdır. | S | Ki-kare + Cramér's V, Mann-Whitney U + rank-biserial, IQR aykırı özeti | Birim testi | 3 | ✓ |
 | FG-14 | Model, zaman sırasına göre ayrılmış son %20 kayıtta da değerlendirilip raporlanmalıdır (dönem etkisi kontrolü). | C | Rastgele ve zaman bazlı test skorları yan yana | Rapor | 8 | ✓ (H8, `split_by_time`, rastgele ve zaman bazlı sonuç raporda yan yana) |
@@ -135,7 +135,7 @@ flowchart TD
 ## 8. Yazılım ve Donanım Gereksinimleri
 
 - **Dil ve sürüm:** Python 3.12+ (3.14 ile doğrulandı).
-- **Kütüphaneler** (`requirements.txt`, sürümleri sabit): pandas, NumPy, SciPy, scikit-learn, XGBoost, imbalanced-learn, Matplotlib, Seaborn, Jupyter, python-docx. H9'da Streamlit eklenecek.
+- **Kütüphaneler** (`requirements.txt`, sürümleri sabit): pandas, NumPy, SciPy, scikit-learn, XGBoost, imbalanced-learn, Matplotlib, Seaborn, Jupyter, python-docx. H9'da Streamlit ve Pydantic eklendi.
 - **Araçlar:** VS Code, Git + GitHub (feature branch + PR akışı), pytest.
 - **Donanım:** 8 GB RAM'li standart dizüstü bilgisayar. GPU gerekmez.
 
