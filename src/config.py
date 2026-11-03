@@ -26,6 +26,11 @@ AGE_LABELS = ["18-25", "26-30", "31-40", "41-50", "51-60", "61+"]
 CV_FOLDS = 5
 # İş senaryosu için eşik seçiminde kabul edecek müşterilerin en az bu oranının yakalanması istenir.
 TARGET_RECALL = 0.70
+# FOG-1: test setinde ROC-AUC en az 0,75 ve PR-AUC en az 0,234 olmalı (0,234, referans modelin kabul oranı 0,117'nin iki katıdır).
+FOG1_MIN_ROC_AUC = 0.75
+FOG1_MIN_PR_AUC = 0.234
+# Moro vd. (2014) çalışmasındaki AUC. Daha geniş bir veri sürümü ve kayan pencere kullandığı için yalnızca gösterge amaçlıdır.
+LITERATURE_ROC_AUC = 0.794
 MONTH_ORDER = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
 
 __all__ = [
@@ -48,5 +53,8 @@ __all__ = [
     "AGE_LABELS",
     "CV_FOLDS",
     "TARGET_RECALL",
+    "FOG1_MIN_ROC_AUC",
+    "FOG1_MIN_PR_AUC",
+    "LITERATURE_ROC_AUC",
     "MONTH_ORDER",
 ]

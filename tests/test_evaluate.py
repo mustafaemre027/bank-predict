@@ -8,8 +8,10 @@ from src.evaluate import (
     calibration_summary,
     compare_folds,
     compute_metrics,
+    confusion_counts,
     fold_composition_for_json,
     fold_metrics_at_nested_threshold,
+    gain_table,
     is_ablation_candidate,
     is_within_noise,
     min_folds_improved_for_candidate,
@@ -175,3 +177,43 @@ def test_calibration_summary_covers_every_record_even_when_bins_do_not_divide_ev
 )
 def test_difference_is_noise_when_smaller_than_fold_standard_deviation(comparison, expected):
     assert is_within_noise(comparison) is expected
+
+
+def test_confusion_counts_match_a_hand_counted_example():
+    y_true = np.array([1, 1, 1, 0, 0, 0, 0, 1])
+    y_pred = np.array([1, 0, 1, 0, 1, 0, 0, 0])
+
+    assert confusion_counts(y_true, y_pred) == {"tn": 3, "fp": 1, "fn": 2, "tp": 2}
+
+
+def test_confusion_counts_keeps_all_four_cells_when_a_class_is_never_predicted():
+    assert confusion_counts([1, 0, 1], [0, 0, 0]) == {"tn": 1, "fp": 0, "fn": 2, "tp": 0}
+
+
+# 10 kişi: 4 kabul eden. Olasılığa göre sıralı etiketler: 1, 1, 0, 1, 0, 0, 1, 0, 0, 0
+GAIN_LABELS = np.array([0, 0, 1, 0, 1, 0, 1, 0, 0, 1])
+GAIN_PROBA = np.array([0.1, 0.5, 0.9, 0.3, 0.8, 0.2, 0.6, 0.7, 0.4, 0.05])
+
+
+def test_gain_table_matches_a_hand_computed_example():
+    rows = gain_table(GAIN_LABELS, GAIN_PROBA, fractions=(0.1, 0.2, 0.3))
+
+    assert [row["contacted"] for row in rows] == [1, 2, 3]
+    assert [row["captured_positives"] for row in rows] == [1, 2, 2]
+    assert [row["capture_rate"] for row in rows] == pytest.approx([0.25, 0.5, 0.5])
+    # Genel kabul oranı 0,4: ilk 1 kişide oran 1 → lift 2,5. İlk 3 kişide 2/3 → lift 5/3.
+    assert [row["lift"] for row in rows] == pytest.approx([2.5, 2.5, (2 / 3) / 0.4])
+
+
+def test_gain_table_breaks_probability_ties_by_original_order():
+    rows = gain_table([0, 1, 0, 1], [0.5, 0.5, 0.5, 0.5], fractions=(0.5,))
+
+    # Tüm olasılıklar eşit: kararlı sıralamada ilk iki kayıt (0, 1) seçilir.
+    assert rows[0]["captured_positives"] == 1
+
+
+def test_gain_table_rejects_labels_without_positives_and_bad_fractions():
+    with pytest.raises(ValueError, match="pozitif"):
+        gain_table([0, 0], [0.1, 0.2])
+    with pytest.raises(ValueError, match="0 ile 1"):
+        gain_table([0, 1], [0.1, 0.2], fractions=(1.5,))
