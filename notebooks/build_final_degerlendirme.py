@@ -18,12 +18,13 @@ matplotlib.use("Agg")
 import nbformat as nbf
 import numpy as np
 import pandas as pd
+from sklearn.base import BaseEstimator
 
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from src.config import FOG1_MIN_PR_AUC, FOG1_MIN_ROC_AUC, LITERATURE_ROC_AUC
+from src.config import FOG1_MIN_PR_AUC, FOG1_MIN_ROC_AUC, LITERATURE_ROC_AUC, TARGET_RECALL
 from src.data_loader import load_raw, validate_raw
 from src.eda_plots import save_figure
 from src.evaluate import JSON_DECIMALS, compute_metrics, confusion_counts, gain_table, round_metrics
@@ -39,9 +40,10 @@ from src.explain import (
 )
 from src.final_model import FinalModelConfig, build_final_pipeline, load_selected_config
 from src.model_plots import plot_confusion_matrix, plot_gain_curve, plot_lr_coefficients, plot_permutation_importance, plot_pr_roc_curves
-from src.modeling import IMBALANCE_NONE, LOGISTIC_REGRESSION, MODEL_LABELS, build_model
+from src.modeling import IMBALANCE_NONE, LOGISTIC_REGRESSION, MODEL_LABELS, build_model, cross_validate_model, make_cv
 from src.notebook_build import write_and_execute_notebook
 from src.preprocessing import TrainTestSplit, add_engineered_features, split_by_time, split_train_test
+from src.threshold import select_threshold_for_recall
 
 NOTEBOOK_PATH = ROOT / "notebooks" / "07_final_degerlendirme.ipynb"
 FIGURES_DIR = ROOT / "reports" / "figures"
@@ -64,7 +66,20 @@ def evaluate_at_threshold(y_true: pd.Series, proba: np.ndarray, threshold: float
     }
 
 
-def fit_final_model(config: FinalModelConfig, split: TrainTestSplit):
+def exact_recall_threshold(config: FinalModelConfig, split: TrainTestSplit, rounded_threshold: float) -> float:
+    """Recall hedefli eşiği yalnızca eğitim verisinin OOF tahminlerinden tam hassasiyetle yeniden hesaplar.
+
+    Hafta 7 özeti bu eşiği yuvarlı tutar. Kalibre (isotonic) olasılıklar basamaklı olduğundan yuvarlama bazı kayıtların sınıfını
+    değiştirebilir. CV tekrar üretilebilir olduğundan sonuç Hafta 7'dekiyle aynıdır, bu da yuvarlı değerle karşılaştırılarak doğrulanır.
+    """
+    oof = cross_validate_model(build_final_pipeline(config), split.X_train, split.y_train, make_cv())
+    exact = select_threshold_for_recall(split.y_train, oof.oof_proba, TARGET_RECALL).threshold
+    if round(exact, JSON_DECIMALS) != rounded_threshold:
+        raise ValueError(f"Yeniden hesaplanan Recall eşiği ({exact:.6f}) Hafta 7 özetindeki değerle ({rounded_threshold}) uyuşmuyor.")
+    return exact
+
+
+def fit_final_model(config: FinalModelConfig, split: TrainTestSplit) -> BaseEstimator:
     return build_final_pipeline(config).fit(split.X_train, split.y_train)
 
 
@@ -115,11 +130,11 @@ def build_summary(df: pd.DataFrame) -> tuple[dict[str, Any], dict[str, Any]]:
     proba = model.predict_proba(split.X_test)[:, 1]
     y_test = split.y_test
 
+    recall_threshold = exact_recall_threshold(config, split, hyperparameter_summary["selected"]["threshold_recall"]["threshold"])
     evaluations = {
         "selected": evaluate_at_threshold(y_test, proba, config.threshold),
         "default_0_5": evaluate_at_threshold(y_test, proba, DEFAULT_THRESHOLD),
-        # Recall eşiği özet JSON'da 4 basamağa yuvarlanmış tutulur; tam değer yalnızca F1 eşiği için saklanmıştı.
-        "target_recall": evaluate_at_threshold(y_test, proba, hyperparameter_summary["selected"]["threshold_recall"]["threshold"]),
+        "target_recall": evaluate_at_threshold(y_test, proba, recall_threshold),
     }
     selected_predictions = (proba >= config.threshold).astype(int)
     test_metrics = evaluations["selected"]["metrics"]

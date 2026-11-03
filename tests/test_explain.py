@@ -166,3 +166,10 @@ def test_variable_ranking_takes_the_largest_absolute_coefficient_per_variable():
 
     assert list(ranking["variable"]) == ["job", "age"]
     assert list(ranking["strength"]) == [0.9, 0.5]
+
+
+def test_metrics_by_group_rejects_mismatched_lengths():
+    X = pd.DataFrame({"contact": ["a", "b", "a"]})
+
+    with pytest.raises(ValueError, match="aynı olmalı"):
+        metrics_by_group(X, np.array([1, 0, 1]), np.array([0.5, 0.4]), "contact")

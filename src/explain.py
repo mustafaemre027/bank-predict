@@ -127,6 +127,8 @@ def with_campaign_period(X: pd.DataFrame) -> pd.DataFrame:
 def metrics_by_group(X: pd.DataFrame, y_true: pd.Series | np.ndarray, proba: np.ndarray, column: str) -> pd.DataFrame:
     """Bir değişkenin her değeri için kayıt sayısı, kabul oranı ve PR-AUC. Tek sınıflı grupta PR-AUC tanımsızdır ve NaN yazılır."""
     labels = np.asarray(y_true)
+    if not len(X) == len(labels) == len(proba):
+        raise ValueError(f"X, etiket ve olasılık sayıları aynı olmalı: {len(X)}, {len(labels)} ve {len(proba)}.")
     rows = []
     for group, indices in X.groupby(column, sort=True).indices.items():
         group_labels = labels[indices]
