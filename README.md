@@ -40,6 +40,7 @@ bank-predict/
 
 ## Kurulum
 ### macOS / Linux
+macOS'ta XGBoost'un çalışması için OpenMP kütüphanesi gerekir: `brew install libomp`.
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
@@ -79,6 +80,10 @@ python reports/hafta3_rapor_kisa.py --kaptan 230260054
 # Hafta 4 ön işleme + ilk Lojistik Regresyon (5 katlı CV): özet JSON, PR/ROC grafiği ve notebook
 python notebooks/build_ilk_model.py
 python reports/hafta4_rapor.py --kaptan 230260054
+
+# Hafta 5 Rastgele Orman, XGBoost ve ön işleme ablasyonu: özet JSON, grafikler ve notebook (yaklaşık 2 dakika)
+python notebooks/build_model_karsilastirma.py
+python reports/hafta5_rapor.py --kaptan 230260173
 ```
 Rapor `reports/haftalik/` altına yazılır ve repoya eklenmez. Rapordaki tüm sayılar o haftanın `reports/haftalik/haftaN_ozet.json` dosyasından okunur.
 
@@ -89,7 +94,7 @@ Rapor `reports/haftalik/` altına yazılır ve repoya eklenmez. Rapordaki tüm s
 | H2 | ✓ |
 | H3 | ✓ |
 | H4 | ✓ |
-| H5 | Planlandı |
+| H5 | ✓ |
 | H6 | Planlandı |
 | H7 | Planlandı |
 | H8 | Planlandı |

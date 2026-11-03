@@ -1,7 +1,17 @@
 import numpy as np
+import pandas as pd
 import pytest
+from sklearn.model_selection import StratifiedKFold
 
-from src.evaluate import compare_folds, compute_metrics, summarize_cv
+from src.evaluate import (
+    build_comparison_table,
+    compare_folds,
+    compute_metrics,
+    fold_composition_for_json,
+    is_ablation_candidate,
+    min_folds_improved_for_candidate,
+    summarize_cv,
+)
 
 
 def test_compute_metrics_basic_example():
@@ -55,3 +65,49 @@ def test_summaries_reject_single_fold_where_std_is_undefined():
         summarize_cv([{"pr_auc": 0.4}])
     with pytest.raises(ValueError, match="En az 2 katman"):
         compare_folds([{"pr_auc": 0.4}], [{"pr_auc": 0.5}], "pr_auc")
+
+
+def test_build_comparison_table_has_one_row_per_model_with_mean_and_std_per_metric():
+    summaries = {
+        "a": summarize_cv([{"pr_auc": 0.4, "roc_auc": 0.7, "f1": 0.1}, {"pr_auc": 0.6, "roc_auc": 0.9, "f1": 0.3}]),
+        "b": summarize_cv([{"pr_auc": 0.2, "roc_auc": 0.5, "f1": 0.0}, {"pr_auc": 0.2, "roc_auc": 0.5, "f1": 0.0}]),
+    }
+
+    table = build_comparison_table(summaries, ["pr_auc", "roc_auc"])
+
+    assert list(table.index) == ["a", "b"]
+    assert table.loc["a", ("pr_auc", "mean")] == pytest.approx(0.5)
+    assert table.loc["a", ("roc_auc", "std")] == pytest.approx(np.std([0.7, 0.9], ddof=1))
+    assert table.loc["b", ("pr_auc", "std")] == 0
+    assert ("f1", "mean") not in table.columns
+
+
+@pytest.mark.parametrize(
+    ("comparison", "expected"),
+    [
+        ({"mean_difference": 0.02, "std_difference": 0.005, "folds_improved": 5, "fold_count": 5}, True),
+        ({"mean_difference": 0.02, "std_difference": 0.005, "folds_improved": 4, "fold_count": 5}, True),
+        ({"mean_difference": 0.02, "std_difference": 0.005, "folds_improved": 3, "fold_count": 5}, False),
+        ({"mean_difference": 0.003, "std_difference": 0.005, "folds_improved": 5, "fold_count": 5}, False),
+        ({"mean_difference": -0.02, "std_difference": 0.005, "folds_improved": 0, "fold_count": 5}, False),
+        ({"mean_difference": 0.0, "std_difference": 0.0, "folds_improved": 0, "fold_count": 5}, False),
+    ],
+)
+def test_ablation_candidate_needs_gain_above_noise_in_most_folds(comparison, expected):
+    assert is_ablation_candidate(comparison) is expected
+
+
+@pytest.mark.parametrize(("fold_count", "expected"), [(5, 4), (10, 8), (3, 3)])
+def test_required_improving_folds_scale_with_fold_count(fold_count, expected):
+    assert min_folds_improved_for_candidate(fold_count) == expected
+
+
+def test_fold_composition_lists_sizes_and_positive_rate_per_fold():
+    X = pd.DataFrame({"a": range(20)})
+    y = pd.Series([1, 0, 0, 0] * 5)
+
+    composition = fold_composition_for_json(X, y, StratifiedKFold(n_splits=5))
+
+    assert len(composition) == 5
+    assert all(fold["train_rows"] == 16 and fold["validation_rows"] == 4 for fold in composition)
+    assert all(fold["validation_positive_rate"] == 0.25 for fold in composition)

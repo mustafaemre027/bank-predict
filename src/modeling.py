@@ -10,18 +10,40 @@ import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator, clone
 from sklearn.dummy import DummyClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import StratifiedKFold
 from sklearn.pipeline import Pipeline
+from xgboost import XGBClassifier
 
 from src.config import CV_FOLDS, RANDOM_STATE
 from src.evaluate import compute_metrics
-from src.preprocessing import build_linear_feature_pipeline
+from src.preprocessing import build_linear_feature_pipeline, build_tree_feature_pipeline
 
 # Karar eşiği Hafta 6'da OOF tahminlerinden seçilecek; o zamana kadar etiket bazlı metrikler varsayılan eşikle verilir.
 DEFAULT_THRESHOLD = 0.5
 # Ölçeklenmiş veride lbfgs varsayılan 100 iterasyonda yakınsamayabildiği için üst sınır yükseltildi.
 LR_MAX_ITER = 1000
+# Ağaç sayısı ve öğrenme hızı gibi ayarlar Hafta 7'de aranacak; bu hafta makul sabit değerlerle üç model karşılaştırılır.
+RF_PARAMS = {"n_estimators": 300, "min_samples_leaf": 5, "max_features": "sqrt"}
+XGB_PARAMS = {
+    "n_estimators": 300,
+    "learning_rate": 0.05,
+    "max_depth": 5,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "tree_method": "hist",
+    "eval_metric": "aucpr",
+}
+
+LOGISTIC_REGRESSION = "logistic_regression"
+RANDOM_FOREST = "random_forest"
+XGBOOST = "xgboost"
+MODEL_LABELS = {
+    LOGISTIC_REGRESSION: "Lojistik Regresyon",
+    RANDOM_FOREST: "Rastgele Orman",
+    XGBOOST: "XGBoost",
+}
 
 
 @dataclass(frozen=True)
@@ -40,10 +62,31 @@ def build_baseline() -> DummyClassifier:
     return DummyClassifier(strategy="most_frequent")
 
 
-def build_logistic_regression(include_age_group: bool = True, rare_month_min_frequency: float | None = None) -> Pipeline:
+def build_logistic_regression(
+    include_age_group: bool = True,
+    rare_month_min_frequency: float | None = None,
+    include_day: bool = True,
+    use_log: bool = True,
+) -> Pipeline:
     """Ön işleme + Lojistik Regresyon. Varsayılan düzenlileştirme L2'dir (C = 1)."""
-    feature_pipeline = build_linear_feature_pipeline(include_age_group, rare_month_min_frequency)
+    feature_pipeline = build_linear_feature_pipeline(include_age_group, rare_month_min_frequency, include_day, use_log)
     return Pipeline([*feature_pipeline.steps, ("model", LogisticRegression(max_iter=LR_MAX_ITER, random_state=RANDOM_STATE))])
+
+
+def build_random_forest(include_age_group: bool = False, include_day: bool = True) -> Pipeline:
+    """Ölçeklemesiz ön işleme + Rastgele Orman."""
+    feature_pipeline = build_tree_feature_pipeline(include_age_group, include_day)
+    # n_jobs=1: çok iş parçacığında ağaç olasılıkları değişken sırada toplandığı için sonuç 1e-16 düzeyinde oynuyor.
+    # Tekrar üretilebilirlik (FOG-2) için model tek iş parçacığında çalışır, paralellik CV ve arama düzeyinde sağlanır.
+    forest = RandomForestClassifier(**RF_PARAMS, n_jobs=1, random_state=RANDOM_STATE)
+    return Pipeline([*feature_pipeline.steps, ("model", forest)])
+
+
+def build_xgboost(include_age_group: bool = False, include_day: bool = True) -> Pipeline:
+    """Ölçeklemesiz ön işleme + XGBoost."""
+    feature_pipeline = build_tree_feature_pipeline(include_age_group, include_day)
+    booster = XGBClassifier(**XGB_PARAMS, n_jobs=-1, random_state=RANDOM_STATE)
+    return Pipeline([*feature_pipeline.steps, ("model", booster)])
 
 
 def cross_validate_model(
@@ -72,9 +115,15 @@ def cross_validate_model(
 
 __all__ = [
     "DEFAULT_THRESHOLD",
+    "LOGISTIC_REGRESSION",
+    "MODEL_LABELS",
+    "RANDOM_FOREST",
+    "XGBOOST",
     "CrossValidationResult",
     "build_baseline",
     "build_logistic_regression",
+    "build_random_forest",
+    "build_xgboost",
     "cross_validate_model",
     "make_cv",
 ]

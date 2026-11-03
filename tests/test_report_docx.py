@@ -85,6 +85,26 @@ def test_captain_form_lists_captain_separately_from_members(tmp_path) -> None:
     assert all(member.full_name in info_rows["Ekip Üyeleri:"] for member in TEAM if member != captain)
 
 
+def test_title_block_uses_weekly_title_by_default(tmp_path) -> None:
+    report = WeeklyReport(week=5, captain_id=CAPTAIN_ID)
+
+    report.add_title_block()
+    document = Document(str(report.save(tmp_path / "baslik.docx")))
+
+    assert "5. HAFTA İLERLEME RAPORU" in document_text(document)
+
+
+def test_title_block_uses_custom_title_when_given(tmp_path) -> None:
+    report = WeeklyReport(week=9, captain_id=CAPTAIN_ID)
+
+    report.add_title_block(title="FİNAL RAPORU")
+    document = Document(str(report.save(tmp_path / "baslik.docx")))
+
+    text = document_text(document)
+    assert "FİNAL RAPORU" in text
+    assert "9. HAFTA İLERLEME RAPORU" not in text
+
+
 def test_unchecked_progress_criterion_is_marked_in_x_column(tmp_path) -> None:
     report = WeeklyReport(week=3, captain_id=CAPTAIN_ID)
 

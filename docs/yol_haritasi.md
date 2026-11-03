@@ -11,7 +11,7 @@
 | 2 | 14 Eki | Veri anlama | Altyapı, veri temini ve doğrulama, ön inceleme, referans model | ✓ |
 | 3 | 21 Eki | Veri anlama | Keşifsel analiz, istatistiksel testler, ön işleme taslağı, PRD + GA v2 + yol haritası | ✓ |
 | 4 | 28 Eki | Veri hazırlama | Ön işleme pipeline'ı + ilk Lojistik Regresyon (CV) | ✓ |
-| 5 | 4 Kas | Modelleme | RF ve XGBoost; üç modelin CV karşılaştırması | ○ |
+| 5 | 4 Kas | Modelleme | RF ve XGBoost; üç modelin CV karşılaştırması | ✓ |
 | 6 | 11 Kas | Modelleme | Sınıf dengesizliği stratejileri ve eşik seçimi | ○ |
 | 7 | 18 Kas | Modelleme | Hiperparametre optimizasyonu ve kalibrasyon kontrolü | ○ |
 | 8 | 25 Kas | Değerlendirme | Final model seçimi, tek seferlik test, açıklanabilirlik, kazanç ve hata analizi | ○ |
@@ -28,7 +28,7 @@ gantt
     Keşifsel analiz              :done, h3, after h2, 7d
     section Hazırlama ve Modelleme
     Ön işleme + LR               :done, h4, after h3, 7d
-    RF + XGBoost                 :h5, after h4, 7d
+    RF + XGBoost                 :done, h5, after h4, 7d
     Dengesizlik + eşik           :h6, after h5, 7d
     Hiperparametre               :h7, after h6, 7d
     section Değerlendirme ve Yayılım
@@ -47,7 +47,11 @@ Kaptan haftalık değişebilir. Ekip bilgisi koda sabitlenmez; rapor üreticiye 
 | 2 | Mustafa Emre KAPLAN (230260143) | |
 | 3 | Ömer NARÇİÇEĞİ (230260054) | |
 | 4 | Ömer NARÇİÇEĞİ (230260054) | |
-| 5-10 | Belirlenecek | Her hafta başında bu tabloya yazılır. Mesut ASLAN henüz kaptanlık yapmadı. |
+| 5 | Mesut ASLAN (230260173) | |
+| 6 | Mustafa Emre KAPLAN (230260143) | |
+| 7 | Mesut ASLAN (230260173) | |
+| 8 | Mustafa Emre KAPLAN (230260143) | |
+| 9 | Ömer NARÇİÇEĞİ (230260054) | Proje 9 hafta olarak planlandı, süre kesinleşince 10. hafta kaptanı eklenir. |
 
 ### Kaptanın haftalık kontrol listesi
 
@@ -109,7 +113,7 @@ GitHub deposu ve Python ortamı kuruldu. `bank-full.csv` indirilip testlerle do�
 - **Hafta 3'ten açık sorular:** Yaş grubu LR'yi iyileştiriyor mu? Az gözlemli aylar birleştirilmeli mi?
 - **Sonuç:** Lojistik Regresyon 5 katlı CV'de PR-AUC 0,409 ± 0,011, ROC-AUC 0,770 ± 0,004 (referans model 0,117 ve 0,500). Yaş grubu küçük bir iyileşme sağladığı için tutuldu, az gözlemli aylar birleştirilmedi. Sayılar `reports/haftalik/hafta4_ozet.json` dosyasından.
 
-### Hafta 5 — Rastgele Orman ve XGBoost
+### Hafta 5 — Rastgele Orman ve XGBoost ✓
 
 | Üye | Görev |
 |---|---|
@@ -122,6 +126,7 @@ GitHub deposu ve Python ortamı kuruldu. `bank-full.csv` indirilip testlerle do�
   - Ablasyon sonuçları
   - Hafta 5 raporu
 - **Bitti tanımı:** Üç model aynı katmanlarda ve aynı metriklerle karşılaştırıldı (FG-5'in ilk yarısı, FG-6).
+- **Sonuç:** 5 katlı CV'de PR-AUC Lojistik Regresyon 0,409 ± 0,011, Rastgele Orman 0,447 ± 0,019, XGBoost 0,453 ± 0,013; ROC-AUC sırasıyla 0,770, 0,796 ve 0,801. XGBoost ile Rastgele Orman arasındaki fark katmanlar arası standart sapmanın altında kaldı. Yedi ablasyon varyantının hiçbiri varsayılanı değiştirme koşulunu karşılamadı; `day` ağaç modellerinde çıkarılınca PR-AUC 0,016-0,019 düştü, bu yüzden tutuldu. Sayılar `reports/haftalik/hafta5_ozet.json` dosyasından. Hiperparametreler sabit tutuldu, H7'de aranacak. Rastgele Orman tekrar üretilebilirlik için tek iş parçacığında çalışır.
 
 ### Hafta 6 — Sınıf Dengesizliği ve Eşik Seçimi
 
