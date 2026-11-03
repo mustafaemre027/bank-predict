@@ -5,7 +5,7 @@ Model seçimi ve karşılaştırmalar yalnızca eğitim verisi içinde bu CV dü
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Callable
 
 import numpy as np
 import pandas as pd
@@ -20,7 +20,7 @@ from sklearn.pipeline import Pipeline
 from xgboost import XGBClassifier
 
 from src.config import CV_FOLDS, RANDOM_STATE
-from src.evaluate import compute_metrics
+from src.evaluate import compute_metrics, fold_metrics_at_nested_threshold, summarize_for_json
 from src.preprocessing import build_linear_feature_pipeline, build_tree_feature_pipeline
 
 # Karar eşiği Hafta 6'da OOF tahminlerinden seçilecek; o zamana kadar etiket bazlı metrikler varsayılan eşikle verilir.
@@ -67,6 +67,16 @@ class CrossValidationResult:
     fold_metrics: list[dict[str, float]]
     oof_proba: np.ndarray
     fold_ids: np.ndarray
+
+
+def nested_threshold_summary(
+    y_true: pd.Series | np.ndarray,
+    result: CrossValidationResult,
+    select_threshold: Callable[[np.ndarray, np.ndarray], float],
+) -> dict[str, dict[str, float]]:
+    """Eşik her katman için diğer katmanların OOF tahminlerinden seçilip o katmanda ölçülür, sonuç ortalama ± std olarak döner."""
+    folds = fold_metrics_at_nested_threshold(y_true, result.oof_proba, result.fold_ids, select_threshold)
+    return summarize_for_json(folds)["summary"]
 
 
 def make_cv() -> StratifiedKFold:
@@ -198,5 +208,6 @@ __all__ = [
     "build_random_forest",
     "build_xgboost",
     "cross_validate_model",
+    "nested_threshold_summary",
     "make_cv",
 ]

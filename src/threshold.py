@@ -5,12 +5,14 @@ Bir müşteri olasılığı eşiğe eşit ya da eşiğin üstündeyse "kabul ede
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
+from typing import Any
 
 import numpy as np
 from sklearn.metrics import precision_recall_curve
 
 from src.config import TARGET_RECALL
+from src.evaluate import round_metrics
 
 CRITERION_MAX_F1 = "max_f1"
 CRITERION_TARGET_RECALL = "target_recall"
@@ -35,6 +37,13 @@ class ThresholdCurves:
     precision: np.ndarray
     recall: np.ndarray
     f1: np.ndarray
+
+
+def choice_to_json(choice: ThresholdChoice) -> dict[str, Any]:
+    """Seçilen eşiği özet JSON'a yazılacak biçimde yuvarlar."""
+    values = asdict(choice)
+    criterion = values.pop("criterion")
+    return {**round_metrics(values), "criterion": criterion}
 
 
 def threshold_curves(y_true: np.ndarray, oof_proba: np.ndarray) -> ThresholdCurves:
@@ -78,6 +87,7 @@ __all__ = [
     "CRITERION_TARGET_RECALL",
     "ThresholdChoice",
     "ThresholdCurves",
+    "choice_to_json",
     "select_threshold_for_recall",
     "select_threshold_max_f1",
     "threshold_curves",

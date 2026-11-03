@@ -1,4 +1,4 @@
-# Yol Haritası — 10 Hafta
+# Yol Haritası — 9 Hafta
 
 > İlgili belgeler: [PRD](prd.md) · [Gereksinim Analizi](gereksinim_analizi.md) · [Ön İşleme Kararları](on_isleme_kararlari.md)
 > Haftalık teslim günü çarşamba kabul edilmiştir (2. hafta PR'ı 14 Ekim 2026'da birleştirildi). Tarihler tahminidir; ders takvimine göre güncellenir.
@@ -13,10 +13,9 @@
 | 4 | 28 Eki | Veri hazırlama | Ön işleme pipeline'ı + ilk Lojistik Regresyon (CV) | ✓ |
 | 5 | 4 Kas | Modelleme | RF ve XGBoost; üç modelin CV karşılaştırması | ✓ |
 | 6 | 11 Kas | Modelleme | Sınıf dengesizliği stratejileri ve eşik seçimi | ✓ |
-| 7 | 18 Kas | Modelleme | Hiperparametre optimizasyonu ve kalibrasyon kontrolü | ○ |
+| 7 | 18 Kas | Modelleme | Hiperparametre optimizasyonu ve kalibrasyon kontrolü | ✓ |
 | 8 | 25 Kas | Değerlendirme | Final model seçimi, tek seferlik test, açıklanabilirlik, kazanç ve hata analizi | ○ |
-| 9 | 2 Ara | Yayılım | Model kaydı, tahmin servisi, Streamlit arayüzü, güvenlik incelemesi | ○ |
-| 10 | 9 Ara | Yayılım | Final raporu, sunum, demo, depo temizliği | ○ |
+| 9 | 2 Ara | Yayılım | Model kaydı, tahmin servisi, Streamlit arayüzü, güvenlik incelemesi, final raporu, sunum, depo temizliği | ○ |
 
 ```mermaid
 gantt
@@ -33,8 +32,7 @@ gantt
     Hiperparametre               :h7, after h6, 7d
     section Değerlendirme ve Yayılım
     Final değerlendirme          :h8, after h7, 7d
-    Arayüz                       :h9, after h8, 7d
-    Final rapor ve sunum         :h10, after h9, 7d
+    Arayüz, final rapor ve sunum :h9, after h8, 7d
 ```
 
 ## Takım Kaptanı Rotasyonu
@@ -51,7 +49,7 @@ Kaptan haftalık değişebilir. Ekip bilgisi koda sabitlenmez; rapor üreticiye 
 | 6 | Mustafa Emre KAPLAN (230260143) | |
 | 7 | Mesut ASLAN (230260173) | |
 | 8 | Mustafa Emre KAPLAN (230260143) | |
-| 9 | Ömer NARÇİÇEĞİ (230260054) | Proje 9 hafta olarak planlandı, süre kesinleşince 10. hafta kaptanı eklenir. |
+| 9 | Ömer NARÇİÇEĞİ (230260054) | Projenin son haftası. Proje toplam 9 hafta sürecek. |
 
 ### Kaptanın haftalık kontrol listesi
 
@@ -174,31 +172,23 @@ GitHub deposu ve Python ortamı kuruldu. `bank-full.csv` indirilip testlerle do�
   - Hafta 8 raporu
 - **Bitti tanımı:** FOG-1 karşılandı ya da karşılanmadıysa nedeni ve sonraki adım raporlandı. Literatürle karşılaştırma yapıldı (Moro vd. 2014'ün farklı veri sürümü notuyla).
 
-### Hafta 9 — Tahmin Servisi ve Arayüz
+### Hafta 9 — Tahmin Servisi, Arayüz, Final Rapor ve Sunum
 
 | Üye | Görev |
 |---|---|
 | Ömer NARÇİÇEĞİ (İP5) | Model kaydı ve yükleme; tahmin servisi (olasılık, etiket, ilk 3 etken); kaydet-yükle tutarlılık testi |
 | Mesut ASLAN (İP6) | Girdi doğrulama (geçerli kategori kümeleri, sayısal aralıklar) ve testleri; < 1 sn süre testi |
 | Mustafa Emre KAPLAN (İP3/İP7) | Streamlit arayüzü (`ui-ux-pro-max` ile tasarım); ekip dışı bir kişiyle kullanılabilirlik denemesi (FOG-4) |
+| Tüm ekip (İP7) | Final raporu; sunum slaytları; demo provası |
+| Kaptan (Ömer) | README güncellemesi (kurulum, tek komutla yeniden üretim); depo temizliği; son PR |
 
 - **Teslimler:**
   - Çalışan arayüz
   - Tahmin servisi ve testleri
   - `/security-review` çıktısı
-  - Hafta 9 raporu
-- **Bitti tanımı:** FG-7 ve FG-11 tamam; arayüzde uçtan uca demo senaryosu çalışıyor; Streamlit sürümü `requirements.txt`'te sabit ve `/guncelle` ile denetlendi.
-
-### Hafta 10 — Final Rapor, Sunum ve Demo
-
-| Üye | Görev |
-|---|---|
-| Tüm ekip (İP7) | Final raporu; sunum slaytları; demo provası |
-| Kaptan | README güncellemesi (kurulum, tek komutla yeniden üretim); depo temizliği; son PR |
-
-- **Teslimler:**
   - Final raporu (PDF)
   - Sunum
   - Canlı demo
   - Temiz ve etiketlenmiş depo sürümü
-- **Bitti tanımı:** PRD'deki 13 kabul kriterinin her biri için kanıt (test, tablo ya da ekran görüntüsü) final raporunda gösterildi.
+  - Hafta 9 raporu
+- **Bitti tanımı:** FG-7 ve FG-11 tamam; arayüzde uçtan uca demo senaryosu çalışıyor; Streamlit sürümü `requirements.txt`'te sabit ve `/guncelle` ile denetlendi. PRD'deki 13 kabul kriterinin her biri için kanıt (test, tablo ya da ekran görüntüsü) final raporunda gösterildi.

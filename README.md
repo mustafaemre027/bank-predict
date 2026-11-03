@@ -13,7 +13,7 @@ Bu proje, bankanın pazarlama kampanyasında müşteri yanıtını tahmin etmeyi
 ## Proje Belgeleri
 - [PRD — Ürün Gereksinim Belgesi](docs/prd.md)
 - [Gereksinim Analizi (Sürüm 2)](docs/gereksinim_analizi.md)
-- [10 Haftalık Yol Haritası](docs/yol_haritasi.md)
+- [9 Haftalık Yol Haritası](docs/yol_haritasi.md)
 - [Ön İşleme Karar Taslağı](docs/on_isleme_kararlari.md)
 - [Veri Sözlüğü](docs/veri_sozlugu.md)
 
@@ -88,6 +88,13 @@ python reports/hafta5_rapor.py --kaptan 230260173
 # Hafta 6 sınıf dengesizliği stratejileri ve eşik seçimi: özet JSON, grafikler ve notebook (yaklaşık 2 dakika)
 python notebooks/build_dengesizlik.py
 python reports/hafta6_rapor.py --kaptan 230260143
+
+# Hafta 7 hiperparametre araması, kalibrasyon ve final aday seçimi: özet JSON, grafikler ve notebook (yaklaşık 5 dakika)
+python notebooks/build_hiperparametre.py
+python reports/hafta7_rapor.py --kaptan 230260173
+
+# Final raporu iskeleti (8. ve 9. hafta sonuçları gelene kadar yalnızca taslak üretilir)
+python reports/final_rapor.py --kaptan 230260054 --taslak
 ```
 Rapor `reports/haftalik/` altına yazılır ve repoya eklenmez. Rapordaki tüm sayılar o haftanın `reports/haftalik/haftaN_ozet.json` dosyasından okunur.
 
@@ -100,7 +107,6 @@ Rapor `reports/haftalik/` altına yazılır ve repoya eklenmez. Rapordaki tüm s
 | H4 | ✓ |
 | H5 | ✓ |
 | H6 | ✓ |
-| H7 | Planlandı |
+| H7 | ✓ |
 | H8 | Planlandı |
 | H9 | Planlandı |
-| H10 | Planlandı |

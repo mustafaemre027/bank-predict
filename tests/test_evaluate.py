@@ -5,11 +5,13 @@ from sklearn.model_selection import StratifiedKFold
 
 from src.evaluate import (
     build_comparison_table,
+    calibration_summary,
     compare_folds,
     compute_metrics,
     fold_composition_for_json,
     fold_metrics_at_nested_threshold,
     is_ablation_candidate,
+    is_within_noise,
     min_folds_improved_for_candidate,
     summarize_cv,
 )
@@ -143,3 +145,33 @@ def test_nested_threshold_uses_only_the_other_folds_labels_and_scores():
     fold_metrics_at_nested_threshold(y_true, proba, fold_ids, spy)
 
     assert selections[0] == ([1, 0, 1, 0], [0.8, 0.2, 0.7, 0.6])
+
+
+def test_calibration_summary_reports_brier_and_equal_sized_bins():
+    y_true = np.array([0, 0, 0, 1, 0, 1, 1, 1])
+    proba = np.array([0.1, 0.2, 0.3, 0.4, 0.6, 0.7, 0.8, 0.9])
+
+    summary = calibration_summary(y_true, proba, n_bins=2)
+
+    assert summary["brier"] == pytest.approx(np.mean((proba - y_true) ** 2))
+    assert [bin_["count"] for bin_ in summary["bins"]] == [4, 4]
+    assert summary["bins"][0]["mean_predicted"] == pytest.approx(0.25)
+    assert summary["bins"][0]["observed_rate"] == pytest.approx(0.25)
+    assert summary["bins"][1]["observed_rate"] == pytest.approx(0.75)
+
+
+def test_calibration_summary_covers_every_record_even_when_bins_do_not_divide_evenly():
+    proba = np.linspace(0.01, 0.99, 23)
+    y_true = (proba > 0.5).astype(int)
+
+    summary = calibration_summary(y_true, proba, n_bins=5)
+
+    assert sum(bin_["count"] for bin_ in summary["bins"]) == 23
+
+
+@pytest.mark.parametrize(
+    ("comparison", "expected"),
+    [({"mean_difference": 0.004, "std_difference": 0.008}, True), ({"mean_difference": -0.004, "std_difference": 0.008}, True), ({"mean_difference": 0.02, "std_difference": 0.008}, False)],
+)
+def test_difference_is_noise_when_smaller_than_fold_standard_deviation(comparison, expected):
+    assert is_within_noise(comparison) is expected
