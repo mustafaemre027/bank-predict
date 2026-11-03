@@ -18,7 +18,6 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from reports.final_rapor import PENDING_SECTIONS, SECTION_TITLES
 from reports.hafta6_rapor import NEXT_WEEK as WEEK6_PLAN
 from src.formatting import format_number, format_percent, join_names
 from src.modeling import IMBALANCE_NONE, MODEL_LABELS, STRATEGY_LABELS
@@ -35,6 +34,10 @@ DONE_THIS_WEEK = WEEK6_PLAN
 # FOG-5: tam hiperparametre araması bu süreyi aşmamalı.
 SEARCH_TIME_LIMIT_SECONDS = 30 * 60
 SECONDS_PER_MINUTE = 60
+# 7. hafta raporu yazıldığında final raporu iskeletinde yer tutucu olan bölümler (8. ve 9. hafta sonuçlarıyla doldurulacaktı).
+# Final raporunun bölüm sayısı (ÖZET dahil). final_rapor.py bu modülü dolaylı içe aktardığı için burada sabit tutulur.
+FINAL_REPORT_SECTION_COUNT = 10
+PENDING_SECTIONS = ["ÖZET", "7. DEĞERLENDİRME", "8. TAHMİN SERVİSİ VE ARAYÜZ", "9. SONUÇ VE ÖNERİLER"]
 REASON_HIGHEST = "highest_pr_auc"
 REASON_SIMPLER = "simpler_within_noise"
 
@@ -333,7 +336,7 @@ def add_final_candidate(report: WeeklyReport, summary: Summary) -> None:
 def add_final_report_skeleton(report: WeeklyReport) -> None:
     report.add_heading("4.5. Final Raporu İskeleti")
     report.add_paragraph(
-        f"Final raporunun iskeleti reports/final_rapor.py dosyasında hazırlandı. Rapor {number_word(len(SECTION_TITLES))} bölümden ve "
+        f"Final raporunun iskeleti reports/final_rapor.py dosyasında hazırlandı. Rapor {number_word(FINAL_REPORT_SECTION_COUNT)} bölümden ve "
         "kabul kriterleri ek tablosundan oluşuyor. Giriş, literatür, yöntem, veri anlama, veri hazırlama ve modelleme bölümleri haftalık "
         f"özet dosyalarından otomatik doldurulmaktadır. Bölümlerden {number_word(len(PENDING_SECTIONS))} tanesi ile kabul kriterleri tablosu sekizinci ve "
         "dokuzuncu hafta sonuçları gelene kadar yer tutucu olarak bırakıldı. Literatür tablosu, Moro ve arkadaşlarının çalışmasının "
