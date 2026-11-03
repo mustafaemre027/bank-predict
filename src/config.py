@@ -24,6 +24,8 @@ NOMINAL_FEATURES = [column for column in CATEGORICAL_FEATURES if column not in B
 AGE_BINS = [-np.inf, 25, 30, 40, 50, 60, np.inf]
 AGE_LABELS = ["18-25", "26-30", "31-40", "41-50", "51-60", "61+"]
 CV_FOLDS = 5
+# İş senaryosu için eşik seçiminde kabul edecek müşterilerin en az bu oranının yakalanması istenir.
+TARGET_RECALL = 0.70
 MONTH_ORDER = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
 
 __all__ = [
@@ -45,5 +47,6 @@ __all__ = [
     "AGE_BINS",
     "AGE_LABELS",
     "CV_FOLDS",
+    "TARGET_RECALL",
     "MONTH_ORDER",
 ]

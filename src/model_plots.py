@@ -7,9 +7,10 @@ import pandas as pd
 from matplotlib.figure import Figure
 from sklearn.metrics import precision_recall_curve, roc_curve
 
-from src.eda_plots import COLOR_GRID, COLOR_NO, COLOR_REFERENCE, COLOR_TEXT, COLOR_YES
+from src.eda_plots import COLOR_GRID, COLOR_MUTED, COLOR_NO, COLOR_REFERENCE, COLOR_TEXT, COLOR_YES
 from src.formatting import format_number
 from src.modeling import LOGISTIC_REGRESSION, RANDOM_FOREST, XGBOOST
+from src.threshold import ThresholdChoice, threshold_curves
 
 FOLD_LINE_ALPHA = 0.35
 FOLD_LINE_WIDTH = 0.8
@@ -21,6 +22,14 @@ ERROR_BAR_CAPSIZE = 4
 MODEL_COLORS = {LOGISTIC_REGRESSION: COLOR_NO, RANDOM_FOREST: COLOR_YES, XGBOOST: "#1baf7a"}
 COMPARISON_METRIC_TITLES = {"pr_auc": "PR-AUC", "roc_auc": "ROC-AUC"}
 HEADROOM_RATIO = 1.25
+GROUP_WIDTH = 0.8
+# Eşik grafiğindeki eğriler model değil metrik olduğu için model renklerini kullanmaz. Eğriler ağırlık ve çizgi stiliyle ayrılır:
+# optimize edilen F1 koyu ve kalın, Precision ve Recall gri tonunda (düz ve noktalı çizgi).
+THRESHOLD_CURVE_STYLES = {
+    "f1": (COLOR_TEXT, "-", 2.5, "F1-Score"),
+    "precision": (COLOR_MUTED, "-", 1.6, "Precision"),
+    "recall": (COLOR_MUTED, "-.", 1.6, "Recall"),
+}
 
 
 def _style_axes(ax: plt.Axes, title: str, xlabel: str, ylabel: str) -> None:
@@ -116,4 +125,69 @@ def plot_pr_curves_overlay(
     return fig
 
 
-__all__ = ["MODEL_COLORS", "plot_model_comparison", "plot_pr_curves_overlay", "plot_pr_roc_curves"]
+def plot_strategy_comparison(
+    panels: list[tuple[str, dict[str, dict[str, dict[str, float]]]]],
+    model_labels: dict[str, str],
+    strategy_labels: dict[str, str],
+) -> Figure:
+    """Her panelde stratejiler gruplanır, gruptaki çubuklar modelleri (sabit renkle) gösterir.
+
+    panels: (başlık, {model: {strateji: {"mean", "std"}}}) listesi.
+    """
+    fig, axes = plt.subplots(1, len(panels), figsize=(4.8 * len(panels), 4))
+    for ax, (title, values) in zip(np.atleast_1d(axes), panels):
+        models = list(values)
+        strategies = list(values[models[0]])
+        bar_width = GROUP_WIDTH / len(models)
+        peak = 0.0
+        for model_index, model in enumerate(models):
+            positions = np.arange(len(strategies)) + (model_index - (len(models) - 1) / 2) * bar_width
+            means = [values[model][strategy]["mean"] for strategy in strategies]
+            stds = [values[model][strategy]["std"] for strategy in strategies]
+            ax.bar(positions, means, width=bar_width * 0.9, color=MODEL_COLORS[model], label=model_labels[model], zorder=2)
+            ax.errorbar(positions, means, yerr=stds, fmt="none", ecolor=COLOR_TEXT, elinewidth=1, capsize=3, zorder=3)
+            peak = max(peak, *(mean + std for mean, std in zip(means, stds)))
+        ax.set_xticks(np.arange(len(strategies)), [strategy_labels[strategy] for strategy in strategies])
+        ax.set_ylim(0, peak * HEADROOM_RATIO)
+        ax.set_title(title, loc="left", color=COLOR_TEXT)
+        ax.grid(axis="y", color=COLOR_GRID, linewidth=0.6)
+        ax.set_axisbelow(True)
+    handles, labels = np.atleast_1d(axes)[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="upper center", ncols=len(handles))
+    fig.tight_layout(rect=(0, 0, 1, 0.92))
+    return fig
+
+
+def plot_threshold_curves(
+    y_true: pd.Series | np.ndarray,
+    oof_proba: np.ndarray,
+    f1_choice: ThresholdChoice,
+    recall_choice: ThresholdChoice,
+    title: str,
+) -> Figure:
+    """OOF tahminlerinde eşiğe göre Precision, Recall ve F1 eğrileri; seçilen iki eşik dikey çizgiyle işaretlenir."""
+    curves = threshold_curves(y_true, oof_proba)
+    fig, ax = plt.subplots(figsize=(6, 4.2))
+    for key in THRESHOLD_CURVE_STYLES:
+        color, linestyle, linewidth, label = THRESHOLD_CURVE_STYLES[key]
+        ax.plot(curves.thresholds, getattr(curves, key), color=color, linestyle=linestyle, linewidth=linewidth, label=label)
+    # İki eşik birbirine yakın olabildiğinden soldaki etiket çizginin soluna, sağdaki sağına yaslanır ve etiketler üst üste binmez.
+    marked = sorted([(f1_choice, "F1 en yüksek"), (recall_choice, "Hedef Recall")], key=lambda item: item[0].threshold)
+    for (choice, label), alignment in zip(marked, ("right", "left")):
+        ax.axvline(choice.threshold, color=COLOR_REFERENCE, linestyle="--", linewidth=1)
+        ax.text(choice.threshold, 1.015, f"{label}: {format_number(choice.threshold, 2)}", ha=alignment, va="bottom", color=COLOR_TEXT, fontsize=8)
+    _style_axes(ax, title, "Karar eşiği", "Metrik değeri")
+    ax.set_title(title, loc="left", color=COLOR_TEXT, pad=22)
+    ax.legend(loc="center right")
+    fig.tight_layout()
+    return fig
+
+
+__all__ = [
+    "MODEL_COLORS",
+    "plot_model_comparison",
+    "plot_pr_curves_overlay",
+    "plot_pr_roc_curves",
+    "plot_strategy_comparison",
+    "plot_threshold_curves",
+]

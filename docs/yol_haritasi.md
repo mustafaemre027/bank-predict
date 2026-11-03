@@ -12,7 +12,7 @@
 | 3 | 21 Eki | Veri anlama | Keşifsel analiz, istatistiksel testler, ön işleme taslağı, PRD + GA v2 + yol haritası | ✓ |
 | 4 | 28 Eki | Veri hazırlama | Ön işleme pipeline'ı + ilk Lojistik Regresyon (CV) | ✓ |
 | 5 | 4 Kas | Modelleme | RF ve XGBoost; üç modelin CV karşılaştırması | ✓ |
-| 6 | 11 Kas | Modelleme | Sınıf dengesizliği stratejileri ve eşik seçimi | ○ |
+| 6 | 11 Kas | Modelleme | Sınıf dengesizliği stratejileri ve eşik seçimi | ✓ |
 | 7 | 18 Kas | Modelleme | Hiperparametre optimizasyonu ve kalibrasyon kontrolü | ○ |
 | 8 | 25 Kas | Değerlendirme | Final model seçimi, tek seferlik test, açıklanabilirlik, kazanç ve hata analizi | ○ |
 | 9 | 2 Ara | Yayılım | Model kaydı, tahmin servisi, Streamlit arayüzü, güvenlik incelemesi | ○ |
@@ -29,7 +29,7 @@ gantt
     section Hazırlama ve Modelleme
     Ön işleme + LR               :done, h4, after h3, 7d
     RF + XGBoost                 :done, h5, after h4, 7d
-    Dengesizlik + eşik           :h6, after h5, 7d
+    Dengesizlik + eşik           :done, h6, after h5, 7d
     Hiperparametre               :h7, after h6, 7d
     section Değerlendirme ve Yayılım
     Final değerlendirme          :h8, after h7, 7d
@@ -128,7 +128,7 @@ GitHub deposu ve Python ortamı kuruldu. `bank-full.csv` indirilip testlerle do�
 - **Bitti tanımı:** Üç model aynı katmanlarda ve aynı metriklerle karşılaştırıldı (FG-5'in ilk yarısı, FG-6).
 - **Sonuç:** 5 katlı CV'de PR-AUC Lojistik Regresyon 0,409 ± 0,011, Rastgele Orman 0,447 ± 0,019, XGBoost 0,453 ± 0,013; ROC-AUC sırasıyla 0,770, 0,796 ve 0,801. XGBoost ile Rastgele Orman arasındaki fark katmanlar arası standart sapmanın altında kaldı. Yedi ablasyon varyantının hiçbiri varsayılanı değiştirme koşulunu karşılamadı; `day` ağaç modellerinde çıkarılınca PR-AUC 0,016-0,019 düştü, bu yüzden tutuldu. Sayılar `reports/haftalik/hafta5_ozet.json` dosyasından. Hiperparametreler sabit tutuldu, H7'de aranacak. Rastgele Orman tekrar üretilebilirlik için tek iş parçacığında çalışır.
 
-### Hafta 6 — Sınıf Dengesizliği ve Eşik Seçimi
+### Hafta 6 — Sınıf Dengesizliği ve Eşik Seçimi ✓
 
 | Üye | Görev |
 |---|---|
@@ -141,6 +141,7 @@ GitHub deposu ve Python ortamı kuruldu. `bank-full.csv` indirilip testlerle do�
   - Eşik seçim fonksiyonu
   - Hafta 6 raporu
 - **Bitti tanımı:** FG-4 ve FG-9 tamam; eşik test setine hiç bakılmadan seçildi.
+- **Sonuç:** Sınıf ağırlığı ve SMOTE, altı karşılaştırmanın hiçbirinde PR-AUC'yi artırmadı (ortalama düşüş 0,0034-0,0082, hiçbir katmanda iyileşme yok). 0,5 eşiğinde Recall yükseldi (sınıf ağırlığıyla XGBoost'ta 0,239 → 0,620), ama OOF'tan seçilen eşikte F1 aynı modelin stratejileri arasında en fazla 0,009 farklı. Üç modelde de en iyi strateji ağırlıksız + eşik ayarlama. H7 adayları: XGBoost ve Rastgele Orman (ağırlıksız). XGBoost için F1 en yüksek eşik 0,22, Recall 0,70 eşiği 0,10. Sayılar `reports/haftalik/hafta6_ozet.json` dosyasından.
 
 ### Hafta 7 — Hiperparametre Optimizasyonu
 

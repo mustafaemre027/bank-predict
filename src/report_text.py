@@ -48,6 +48,25 @@ def fold_count_text(improved: int, total: int) -> str:
     return f"{total} katmanın {improved}'{LOCATIVE_SUFFIXES[improved % 10]}"
 
 
+# Python'un lower() metodu Türkçe I/İ harflerini İngilizce kurala göre küçültür; bu iki harf elle eşlenir.
+TURKISH_LOWERCASE = {"I": "ı", "İ": "i"}
+
+
+NUMBER_WORDS = ("sıfır", "bir", "iki", "üç", "dört", "beş", "altı", "yedi", "sekiz", "dokuz", "on")
+
+
+def number_word(number: int) -> str:
+    """Düzyazıda küçük sayıları yazıyla verir (iki, üç, dokuz). On'dan büyük sayılar rakamla kalır."""
+    return NUMBER_WORDS[number] if 0 <= number < len(NUMBER_WORDS) else str(number)
+
+
+def lower_first(text: str) -> str:
+    """Cümlenin ilk harfini küçültür. SMOTE gibi tamamı büyük harfli kısaltmaların bozulmaması için ikinci harf büyükse dokunmaz."""
+    if not text or (len(text) > 1 and text[1].isupper()):
+        return text
+    return f"{TURKISH_LOWERCASE.get(text[0], text[0].lower())}{text[1:]}"
+
+
 def signed(value: float) -> str:
     return f"+{decimal(value, 4)}" if value > 0 else decimal(value, 4)
 
@@ -90,7 +109,9 @@ __all__ = [
     "describe_comparison",
     "fold_count_text",
     "is_within_noise",
+    "lower_first",
     "mean_of",
     "mean_std",
+    "number_word",
     "signed",
 ]

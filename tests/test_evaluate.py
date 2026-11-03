@@ -8,6 +8,7 @@ from src.evaluate import (
     compare_folds,
     compute_metrics,
     fold_composition_for_json,
+    fold_metrics_at_nested_threshold,
     is_ablation_candidate,
     min_folds_improved_for_candidate,
     summarize_cv,
@@ -111,3 +112,34 @@ def test_fold_composition_lists_sizes_and_positive_rate_per_fold():
     assert len(composition) == 5
     assert all(fold["train_rows"] == 16 and fold["validation_rows"] == 4 for fold in composition)
     assert all(fold["validation_positive_rate"] == 0.25 for fold in composition)
+
+
+def test_nested_threshold_is_selected_without_looking_at_the_scored_fold():
+    y_true = np.array([1, 0, 1, 0, 1, 0, 1, 0])
+    proba = np.array([0.9, 0.1, 0.4, 0.2, 0.8, 0.3, 0.6, 0.7])
+    fold_ids = np.array([0, 0, 0, 0, 1, 1, 1, 1])
+    seen_rows = []
+
+    def record_and_pick_half(labels, scores):
+        seen_rows.append(len(labels))
+        return 0.5
+
+    folds = fold_metrics_at_nested_threshold(y_true, proba, fold_ids, record_and_pick_half)
+
+    assert seen_rows == [4, 4]
+    assert [fold["recall"] for fold in folds] == [0.5, 1.0]
+
+
+def test_nested_threshold_uses_only_the_other_folds_labels_and_scores():
+    y_true = np.array([1, 0, 1, 0, 1, 0])
+    proba = np.array([0.9, 0.1, 0.8, 0.2, 0.7, 0.6])
+    fold_ids = np.array([0, 0, 1, 1, 2, 2])
+    selections = []
+
+    def spy(labels, scores):
+        selections.append((labels.tolist(), scores.tolist()))
+        return 0.5
+
+    fold_metrics_at_nested_threshold(y_true, proba, fold_ids, spy)
+
+    assert selections[0] == ([1, 0, 1, 0], [0.8, 0.2, 0.7, 0.6])

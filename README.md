@@ -84,6 +84,10 @@ python reports/hafta4_rapor.py --kaptan 230260054
 # Hafta 5 Rastgele Orman, XGBoost ve ön işleme ablasyonu: özet JSON, grafikler ve notebook (yaklaşık 2 dakika)
 python notebooks/build_model_karsilastirma.py
 python reports/hafta5_rapor.py --kaptan 230260173
+
+# Hafta 6 sınıf dengesizliği stratejileri ve eşik seçimi: özet JSON, grafikler ve notebook (yaklaşık 2 dakika)
+python notebooks/build_dengesizlik.py
+python reports/hafta6_rapor.py --kaptan 230260143
 ```
 Rapor `reports/haftalik/` altına yazılır ve repoya eklenmez. Rapordaki tüm sayılar o haftanın `reports/haftalik/haftaN_ozet.json` dosyasından okunur.
 
@@ -95,7 +99,7 @@ Rapor `reports/haftalik/` altına yazılır ve repoya eklenmez. Rapordaki tüm s
 | H3 | ✓ |
 | H4 | ✓ |
 | H5 | ✓ |
-| H6 | Planlandı |
+| H6 | ✓ |
 | H7 | Planlandı |
 | H8 | Planlandı |
 | H9 | Planlandı |

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 from fractions import Fraction
-from typing import Any, Sequence
+from typing import Any, Callable, Sequence
 
 import numpy as np
 import pandas as pd
@@ -96,6 +96,27 @@ def is_ablation_candidate(comparison: dict[str, float]) -> bool:
         and comparison["mean_difference"] > comparison["std_difference"]
         and comparison["folds_improved"] >= min_folds_improved_for_candidate(comparison["fold_count"])
     )
+
+
+def fold_metrics_at_nested_threshold(
+    y_true: Sequence[int] | np.ndarray,
+    oof_proba: np.ndarray,
+    fold_ids: np.ndarray,
+    select_threshold: Callable[[np.ndarray, np.ndarray], float],
+) -> list[dict[str, float]]:
+    """Her katmanın metriklerini, eşiği o katman dışındaki katmanların OOF tahminlerinden seçerek hesaplar.
+
+    Eşik, üzerinde ölçüldüğü tahminlere bakmadan seçildiği için sonuç, eşiği tüm OOF tahminlerinden seçip aynı tahminlerde ölçmekten
+    daha az iyimserdir.
+    """
+    y_array = np.asarray(y_true)
+    metrics = []
+    for fold in np.unique(fold_ids):
+        held_out = fold_ids == fold
+        threshold = select_threshold(y_array[~held_out], oof_proba[~held_out])
+        proba = oof_proba[held_out]
+        metrics.append(compute_metrics(y_array[held_out], (proba >= threshold).astype(int), proba))
+    return metrics
 
 
 def fold_composition_for_json(X: pd.DataFrame, y: pd.Series, cv: Any) -> list[dict[str, Any]]:

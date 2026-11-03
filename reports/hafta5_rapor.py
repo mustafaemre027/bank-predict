@@ -34,6 +34,7 @@ from src.report_text import (
     describe_change,
     describe_comparison,
     is_within_noise,
+    lower_first,
     mean_of,
     mean_std,
     signed,
@@ -266,7 +267,7 @@ def add_project_management(report: WeeklyReport) -> None:
     )
     report.add_heading("3.3. Bu Hafta Yapılan Çalışmalar")
     done_rows = [
-        [name, f"{CAPTAIN_DUTY}, {work[0].lower()}{work[1:]}" if name == report.captain.full_name else work]
+        [name, f"{CAPTAIN_DUTY}, {lower_first(work)}" if name == report.captain.full_name else work]
         for name, work in DONE_THIS_WEEK
     ]
     report.add_table("Bu hafta yapılan çalışmalar", ["Takım Üyesi", "Yapılan Çalışma"], done_rows, [4.5, 11.5])

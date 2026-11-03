@@ -5,9 +5,12 @@ Model seçimi ve karşılaştırmalar yalnızca eğitim verisi içinde bu CV dü
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 import numpy as np
 import pandas as pd
+from imblearn.over_sampling import SMOTE
+from imblearn.pipeline import Pipeline as ImbPipeline
 from sklearn.base import BaseEstimator, clone
 from sklearn.dummy import DummyClassifier
 from sklearn.ensemble import RandomForestClassifier
@@ -44,6 +47,19 @@ MODEL_LABELS = {
     RANDOM_FOREST: "Rastgele Orman",
     XGBOOST: "XGBoost",
 }
+
+# Sınıf dengesizliği stratejileri. Eşik ayarlama ayrı bir pipeline gerektirmez: "none" modeli ve OOF'tan seçilen eşik kullanılır.
+IMBALANCE_NONE = "none"
+IMBALANCE_CLASS_WEIGHT = "class_weight"
+IMBALANCE_SMOTE = "smote"
+IMBALANCE_STRATEGIES = (IMBALANCE_NONE, IMBALANCE_CLASS_WEIGHT, IMBALANCE_SMOTE)
+STRATEGY_LABELS = {
+    IMBALANCE_NONE: "Ağırlıksız",
+    IMBALANCE_CLASS_WEIGHT: "Sınıf ağırlığı",
+    IMBALANCE_SMOTE: "SMOTE",
+}
+# Rastgele Orman'da "balanced_subsample" ağırlığı her bootstrap örneklemi için yeniden hesaplar.
+SKLEARN_CLASS_WEIGHT = {LOGISTIC_REGRESSION: "balanced", RANDOM_FOREST: "balanced_subsample"}
 
 
 @dataclass(frozen=True)
@@ -89,6 +105,55 @@ def build_xgboost(include_age_group: bool = False, include_day: bool = True) -> 
     return Pipeline([*feature_pipeline.steps, ("model", booster)])
 
 
+class ClassWeightedXGBClassifier(XGBClassifier):
+    """Pozitif sınıfa, her fit çağrısında o fit'in eğitim etiketlerinden hesaplanan negatif/pozitif oranı kadar ağırlık veren XGBoost.
+
+    Ağırlık hiperparametre olarak değil sample_weight olarak verilir, bu yüzden fit modelin kurucu parametrelerini değiştirmez.
+    CV'de her katman kendi eğitim oranını kullanır, doğrulama katmanının etiketlerinden bilgi sızmaz. Etiketler 0/1 olmalıdır.
+    """
+
+    def fit(self, X: pd.DataFrame | np.ndarray, y: pd.Series | np.ndarray) -> "ClassWeightedXGBClassifier":
+        labels = np.asarray(y)
+        positives = int((labels == 1).sum())
+        negatives = len(labels) - positives
+        if positives == 0 or negatives == 0:
+            raise ValueError("Sınıf ağırlığı hesaplamak için eğitim etiketlerinde iki sınıf da bulunmalı.")
+        sample_weight = np.where(labels == 1, negatives / positives, 1.0)
+        return super().fit(X, y, sample_weight=sample_weight)
+
+
+def add_smote_step(pipeline: Pipeline) -> ImbPipeline:
+    """SMOTE'u ön işlemeden sonra, model adımından önce ekler.
+
+    imblearn Pipeline'ı örneklemeyi yalnızca fit sırasında uygular. Böylece CV'de yalnızca eğitim katmanı çoğaltılır,
+    doğrulama katmanı tahmin sırasında olduğu gibi kalır.
+    """
+    *preparation_steps, model_step = pipeline.steps
+    return ImbPipeline([*preparation_steps, ("smote", SMOTE(random_state=RANDOM_STATE)), model_step])
+
+
+def _add_class_weight(model_name: str, pipeline: Pipeline) -> Pipeline:
+    if model_name == XGBOOST:
+        booster = ClassWeightedXGBClassifier(**XGB_PARAMS, n_jobs=-1, random_state=RANDOM_STATE)
+        return Pipeline([*pipeline.steps[:-1], ("model", booster)])
+    return pipeline.set_params(model__class_weight=SKLEARN_CLASS_WEIGHT[model_name])
+
+
+def build_model(model_name: str, strategy: str = IMBALANCE_NONE) -> Pipeline | ImbPipeline:
+    """Model adı ve dengesizlik stratejisinden, varsayılan ön işleme seçenekleriyle fit edilmemiş pipeline kurar."""
+    builders = {LOGISTIC_REGRESSION: build_logistic_regression, RANDOM_FOREST: build_random_forest, XGBOOST: build_xgboost}
+    if model_name not in builders:
+        raise ValueError(f"Bilinmeyen model: {model_name}. Geçerli modeller: {', '.join(builders)}.")
+    if strategy not in IMBALANCE_STRATEGIES:
+        raise ValueError(f"Bilinmeyen strateji: {strategy}. Geçerli stratejiler: {', '.join(IMBALANCE_STRATEGIES)}.")
+    pipeline = builders[model_name]()
+    if strategy == IMBALANCE_CLASS_WEIGHT:
+        return _add_class_weight(model_name, pipeline)
+    if strategy == IMBALANCE_SMOTE:
+        return add_smote_step(pipeline)
+    return pipeline
+
+
 def cross_validate_model(
     estimator: BaseEstimator,
     X: pd.DataFrame,
@@ -115,6 +180,14 @@ def cross_validate_model(
 
 __all__ = [
     "DEFAULT_THRESHOLD",
+    "IMBALANCE_CLASS_WEIGHT",
+    "IMBALANCE_NONE",
+    "IMBALANCE_SMOTE",
+    "IMBALANCE_STRATEGIES",
+    "STRATEGY_LABELS",
+    "ClassWeightedXGBClassifier",
+    "add_smote_step",
+    "build_model",
     "LOGISTIC_REGRESSION",
     "MODEL_LABELS",
     "RANDOM_FOREST",
