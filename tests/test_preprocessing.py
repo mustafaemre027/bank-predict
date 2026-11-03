@@ -5,6 +5,7 @@ import pytest
 from src.config import DROP_COLS, NOT_PREVIOUSLY_CONTACTED, TARGET
 from src.data_loader import load_raw
 from src.preprocessing import (
+    split_by_time,
     AGE_GROUP_FEATURE,
     WAS_CONTACTED_FEATURE,
     add_engineered_features,
@@ -274,3 +275,22 @@ def test_linear_pipeline_without_day_and_without_log_standardizes_remaining_nume
     scaled_names = [name for name in names if name.startswith("scaled__")]
 
     assert scaled_names == ["scaled__balance", "scaled__campaign", "scaled__previous", "scaled__age", "scaled__pdays"]
+
+
+def test_split_by_time_keeps_the_last_rows_as_test_in_original_order():
+    df = pd.DataFrame({"age": range(10), "duration": 1, "y": ["no", "yes"] * 5})
+
+    split = split_by_time(df, test_size=0.2)
+
+    assert list(split.X_train["age"]) == list(range(8))
+    assert list(split.X_test["age"]) == [8, 9]
+    assert list(split.y_test) == [0, 1]
+    assert "duration" not in split.X_train.columns and "y" not in split.X_train.columns
+
+
+def test_split_by_time_rounds_test_size_up_like_train_test_split():
+    df = pd.DataFrame({"age": range(11), "duration": 1, "y": ["no"] * 11})
+
+    split = split_by_time(df, test_size=0.2)
+
+    assert len(split.X_test) == 3 and len(split.X_train) == 8

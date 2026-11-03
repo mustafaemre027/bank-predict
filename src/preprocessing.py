@@ -5,6 +5,7 @@ adımlar çapraz doğrulamada yalnızca eğitim katmanına fit edilir ve doğrul
 """
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 import numpy as np
@@ -50,6 +51,18 @@ class TrainTestSplit:
 def encode_target(target: pd.Series) -> pd.Series:
     """yes/no hedefini 1/0 tamsayıya çevirir."""
     return (target == POSITIVE_LABEL).astype(int)
+
+
+def split_by_time(df: pd.DataFrame, test_size: float = TEST_SIZE) -> TrainTestSplit:
+    """Veri dosyası tarih sırasında olduğundan son `test_size` kadar satırı test olarak ayırır; karıştırma ve katmanlama yoktur.
+
+    Test satır sayısı sklearn'ün train_test_split'iyle aynı biçimde yukarı yuvarlanır.
+    """
+    features = df.drop(columns=[*DROP_COLS, TARGET])
+    target = encode_target(df[TARGET])
+    test_rows = math.ceil(len(df) * test_size)
+    train_rows = len(df) - test_rows
+    return TrainTestSplit(features.iloc[:train_rows], features.iloc[train_rows:], target.iloc[:train_rows], target.iloc[train_rows:])
 
 
 def split_train_test(df: pd.DataFrame) -> TrainTestSplit:
@@ -186,5 +199,6 @@ __all__ = [
     "encode_binary",
     "encode_target",
     "signed_log1p",
+    "split_by_time",
     "split_train_test",
 ]

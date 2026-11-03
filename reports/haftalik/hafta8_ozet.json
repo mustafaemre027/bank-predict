@@ -1,0 +1,669 @@
+{
+  "selected": {
+    "reason": "highest_pr_auc",
+    "highest_pr_auc_model": "xgboost",
+    "model": "xgboost",
+    "strategy": "none",
+    "params": {
+      "model__colsample_bytree": 0.7159725093210578,
+      "model__learning_rate": 0.023927528765580644,
+      "model__max_depth": 5,
+      "model__min_child_weight": 3,
+      "model__n_estimators": 766,
+      "model__reg_lambda": 9.25681899206688,
+      "model__subsample": 0.786705157299192
+    },
+    "calibrated": true,
+    "threshold": 0.24354147017002106,
+    "threshold_f1": {
+      "threshold": 0.2435,
+      "precision": 0.4587,
+      "recall": 0.5238,
+      "f1": 0.4891,
+      "criterion": "max_f1"
+    },
+    "threshold_recall": {
+      "threshold": 0.0916,
+      "precision": 0.2863,
+      "recall": 0.7001,
+      "f1": 0.4064,
+      "criterion": "target_recall"
+    },
+    "oof_summary": {
+      "accuracy": {
+        "mean": 0.8945,
+        "std": 0.0027
+      },
+      "precision": {
+        "mean": 0.6491,
+        "std": 0.0302
+      },
+      "recall": {
+        "mean": 0.2141,
+        "std": 0.023
+      },
+      "f1": {
+        "mean": 0.3217,
+        "std": 0.0279
+      },
+      "roc_auc": {
+        "mean": 0.8012,
+        "std": 0.0032
+      },
+      "pr_auc": {
+        "mean": 0.4553,
+        "std": 0.0159
+      }
+    },
+    "nested_summary_f1_threshold": {
+      "accuracy": {
+        "mean": 0.87,
+        "std": 0.0065
+      },
+      "precision": {
+        "mean": 0.4537,
+        "std": 0.018
+      },
+      "recall": {
+        "mean": 0.528,
+        "std": 0.0301
+      },
+      "f1": {
+        "mean": 0.4872,
+        "std": 0.0087
+      },
+      "roc_auc": {
+        "mean": 0.8012,
+        "std": 0.0032
+      },
+      "pr_auc": {
+        "mean": 0.4553,
+        "std": 0.0159
+      }
+    },
+    "nested_summary_recall_threshold": {
+      "accuracy": {
+        "mean": 0.7589,
+        "std": 0.0218
+      },
+      "precision": {
+        "mean": 0.286,
+        "std": 0.0191
+      },
+      "recall": {
+        "mean": 0.7012,
+        "std": 0.0256
+      },
+      "f1": {
+        "mean": 0.4057,
+        "std": 0.0175
+      },
+      "roc_auc": {
+        "mean": 0.8012,
+        "std": 0.0032
+      },
+      "pr_auc": {
+        "mean": 0.4553,
+        "std": 0.0159
+      }
+    },
+    "base_rate": 0.117
+  },
+  "split": {
+    "train_rows": 36168,
+    "test_rows": 9043,
+    "test_positive_rate": 0.117
+  },
+  "test_metrics": {
+    "selected": {
+      "threshold": 0.2435,
+      "metrics": {
+        "accuracy": 0.8726,
+        "precision": 0.4616,
+        "recall": 0.534,
+        "f1": 0.4952,
+        "roc_auc": 0.8083,
+        "pr_auc": 0.4722
+      },
+      "confusion": {
+        "tn": 7326,
+        "fp": 659,
+        "fn": 493,
+        "tp": 565
+      },
+      "predicted_positive_share": 0.1354
+    },
+    "default_0_5": {
+      "threshold": 0.5,
+      "metrics": {
+        "accuracy": 0.8957,
+        "precision": 0.6611,
+        "recall": 0.2231,
+        "f1": 0.3336,
+        "roc_auc": 0.8083,
+        "pr_auc": 0.4722
+      },
+      "confusion": {
+        "tn": 7864,
+        "fp": 121,
+        "fn": 822,
+        "tp": 236
+      },
+      "predicted_positive_share": 0.0395
+    },
+    "target_recall": {
+      "threshold": 0.0916,
+      "metrics": {
+        "accuracy": 0.757,
+        "precision": 0.2853,
+        "recall": 0.7155,
+        "f1": 0.408,
+        "roc_auc": 0.8083,
+        "pr_auc": 0.4722
+      },
+      "confusion": {
+        "tn": 6089,
+        "fp": 1896,
+        "fn": 301,
+        "tp": 757
+      },
+      "predicted_positive_share": 0.2934
+    }
+  },
+  "confusion": {
+    "tn": 7326,
+    "fp": 659,
+    "fn": 493,
+    "tp": 565
+  },
+  "gain_table": [
+    {
+      "fraction": 0.1,
+      "contacted": 904,
+      "captured_positives": 480,
+      "capture_rate": 0.4537,
+      "lift": 4.5384
+    },
+    {
+      "fraction": 0.2,
+      "contacted": 1809,
+      "captured_positives": 669,
+      "capture_rate": 0.6323,
+      "lift": 3.1609
+    },
+    {
+      "fraction": 0.3,
+      "contacted": 2713,
+      "captured_positives": 760,
+      "capture_rate": 0.7183,
+      "lift": 2.3944
+    }
+  ],
+  "fog1": {
+    "roc_auc_target": 0.75,
+    "pr_auc_target": 0.234,
+    "roc_auc_met": true,
+    "pr_auc_met": true,
+    "met": true
+  },
+  "recall_positive": true,
+  "time_based": {
+    "train_rows": 36168,
+    "test_rows": 9043,
+    "train_positive_rate": 0.0673,
+    "test_positive_rate": 0.3158,
+    "roc_auc": 0.6006,
+    "pr_auc": 0.3834,
+    "overlap_with_random_test": 1814
+  },
+  "permutation_importance": [
+    {
+      "feature": "month",
+      "importance_mean": 0.1188,
+      "importance_std": 0.0063
+    },
+    {
+      "feature": "poutcome",
+      "importance_mean": 0.0804,
+      "importance_std": 0.0047
+    },
+    {
+      "feature": "contact",
+      "importance_mean": 0.0781,
+      "importance_std": 0.0057
+    },
+    {
+      "feature": "day",
+      "importance_mean": 0.0559,
+      "importance_std": 0.0051
+    },
+    {
+      "feature": "pdays",
+      "importance_mean": 0.031,
+      "importance_std": 0.003
+    },
+    {
+      "feature": "housing",
+      "importance_mean": 0.0167,
+      "importance_std": 0.0029
+    },
+    {
+      "feature": "campaign",
+      "importance_mean": 0.0108,
+      "importance_std": 0.0034
+    },
+    {
+      "feature": "age",
+      "importance_mean": 0.0055,
+      "importance_std": 0.0022
+    },
+    {
+      "feature": "previous",
+      "importance_mean": 0.0046,
+      "importance_std": 0.0012
+    },
+    {
+      "feature": "marital",
+      "importance_mean": 0.0035,
+      "importance_std": 0.0009
+    },
+    {
+      "feature": "loan",
+      "importance_mean": 0.0034,
+      "importance_std": 0.0017
+    },
+    {
+      "feature": "education",
+      "importance_mean": 0.0018,
+      "importance_std": 0.0012
+    },
+    {
+      "feature": "balance",
+      "importance_mean": 0.0015,
+      "importance_std": 0.0018
+    },
+    {
+      "feature": "default",
+      "importance_mean": 0.0,
+      "importance_std": 0.0001
+    },
+    {
+      "feature": "job",
+      "importance_mean": -0.001,
+      "importance_std": 0.0015
+    }
+  ],
+  "lr_coefficients": [
+    {
+      "feature": "nominal__poutcome_success",
+      "coefficient": 1.3577
+    },
+    {
+      "feature": "month__month_mar",
+      "coefficient": 1.0572
+    },
+    {
+      "feature": "month__month_jan",
+      "coefficient": -1.0253
+    },
+    {
+      "feature": "nominal__contact_unknown",
+      "coefficient": -0.9304
+    },
+    {
+      "feature": "nominal__poutcome_failure",
+      "coefficient": -0.8491
+    },
+    {
+      "feature": "month__month_nov",
+      "coefficient": -0.7523
+    },
+    {
+      "feature": "month__month_aug",
+      "coefficient": -0.6809
+    },
+    {
+      "feature": "month__month_sep",
+      "coefficient": 0.6151
+    },
+    {
+      "feature": "nominal__poutcome_other",
+      "coefficient": -0.581
+    },
+    {
+      "feature": "month__month_oct",
+      "coefficient": 0.5741
+    },
+    {
+      "feature": "month__month_dec",
+      "coefficient": 0.5626
+    },
+    {
+      "feature": "month__month_jul",
+      "coefficient": -0.5467
+    },
+    {
+      "feature": "binary__housing",
+      "coefficient": -0.4814
+    },
+    {
+      "feature": "nominal__poutcome_unknown",
+      "coefficient": -0.4541
+    },
+    {
+      "feature": "nominal__age_group_51-60",
+      "coefficient": -0.4459
+    }
+  ],
+  "lr_variable_ranking": [
+    {
+      "variable": "poutcome",
+      "strength": 1.3577
+    },
+    {
+      "variable": "month",
+      "strength": 1.0572
+    },
+    {
+      "variable": "contact",
+      "strength": 0.9304
+    },
+    {
+      "variable": "housing",
+      "strength": 0.4814
+    },
+    {
+      "variable": "age",
+      "strength": 0.4459
+    },
+    {
+      "variable": "marital",
+      "strength": 0.3481
+    },
+    {
+      "variable": "job",
+      "strength": 0.3449
+    },
+    {
+      "variable": "loan",
+      "strength": 0.3219
+    },
+    {
+      "variable": "education",
+      "strength": 0.2832
+    },
+    {
+      "variable": "campaign",
+      "strength": 0.2046
+    },
+    {
+      "variable": "balance",
+      "strength": 0.1875
+    },
+    {
+      "variable": "previous",
+      "strength": 0.1344
+    },
+    {
+      "variable": "pdays",
+      "strength": 0.0546
+    },
+    {
+      "variable": "day",
+      "strength": 0.0384
+    },
+    {
+      "variable": "default",
+      "strength": 0.0282
+    }
+  ],
+  "importance_overlap_top5": {
+    "count": 3,
+    "variables": [
+      "month",
+      "poutcome",
+      "contact"
+    ]
+  },
+  "error_profile": {
+    "poutcome": [
+      {
+        "category": "failure",
+        "false_negative_count": 62,
+        "false_negative_share": 0.1258,
+        "true_positive_count": 78,
+        "true_positive_share": 0.1381
+      },
+      {
+        "category": "other",
+        "false_negative_count": 23,
+        "false_negative_share": 0.0467,
+        "true_positive_count": 39,
+        "true_positive_share": 0.069
+      },
+      {
+        "category": "success",
+        "false_negative_count": 0,
+        "false_negative_share": 0.0,
+        "true_positive_count": 199,
+        "true_positive_share": 0.3522
+      },
+      {
+        "category": "unknown",
+        "false_negative_count": 408,
+        "false_negative_share": 0.8276,
+        "true_positive_count": 249,
+        "true_positive_share": 0.4407
+      }
+    ],
+    "contact": [
+      {
+        "category": "cellular",
+        "false_negative_count": 377,
+        "false_negative_share": 0.7647,
+        "true_positive_count": 511,
+        "true_positive_share": 0.9044
+      },
+      {
+        "category": "telephone",
+        "false_negative_count": 18,
+        "false_negative_share": 0.0365,
+        "true_positive_count": 49,
+        "true_positive_share": 0.0867
+      },
+      {
+        "category": "unknown",
+        "false_negative_count": 98,
+        "false_negative_share": 0.1988,
+        "true_positive_count": 5,
+        "true_positive_share": 0.0088
+      }
+    ],
+    "month": [
+      {
+        "category": "apr",
+        "false_negative_count": 31,
+        "false_negative_share": 0.0629,
+        "true_positive_count": 78,
+        "true_positive_share": 0.1381
+      },
+      {
+        "category": "aug",
+        "false_negative_count": 86,
+        "false_negative_share": 0.1744,
+        "true_positive_count": 57,
+        "true_positive_share": 0.1009
+      },
+      {
+        "category": "dec",
+        "false_negative_count": 0,
+        "false_negative_share": 0.0,
+        "true_positive_count": 16,
+        "true_positive_share": 0.0283
+      },
+      {
+        "category": "feb",
+        "false_negative_count": 32,
+        "false_negative_share": 0.0649,
+        "true_positive_count": 60,
+        "true_positive_share": 0.1062
+      },
+      {
+        "category": "jan",
+        "false_negative_count": 16,
+        "false_negative_share": 0.0325,
+        "true_positive_count": 12,
+        "true_positive_share": 0.0212
+      },
+      {
+        "category": "jul",
+        "false_negative_count": 81,
+        "false_negative_share": 0.1643,
+        "true_positive_count": 33,
+        "true_positive_share": 0.0584
+      },
+      {
+        "category": "jun",
+        "false_negative_count": 44,
+        "false_negative_share": 0.0892,
+        "true_positive_count": 61,
+        "true_positive_share": 0.108
+      },
+      {
+        "category": "mar",
+        "false_negative_count": 3,
+        "false_negative_share": 0.0061,
+        "true_positive_count": 46,
+        "true_positive_share": 0.0814
+      },
+      {
+        "category": "may",
+        "false_negative_count": 139,
+        "false_negative_share": 0.2819,
+        "true_positive_count": 47,
+        "true_positive_share": 0.0832
+      },
+      {
+        "category": "nov",
+        "false_negative_count": 57,
+        "false_negative_share": 0.1156,
+        "true_positive_count": 30,
+        "true_positive_share": 0.0531
+      },
+      {
+        "category": "oct",
+        "false_negative_count": 2,
+        "false_negative_share": 0.0041,
+        "true_positive_count": 62,
+        "true_positive_share": 0.1097
+      },
+      {
+        "category": "sep",
+        "false_negative_count": 2,
+        "false_negative_share": 0.0041,
+        "true_positive_count": 63,
+        "true_positive_share": 0.1115
+      }
+    ],
+    "age_group": [
+      {
+        "category": "18-25",
+        "false_negative_count": 14,
+        "false_negative_share": 0.0284,
+        "true_positive_count": 43,
+        "true_positive_share": 0.0761
+      },
+      {
+        "category": "26-30",
+        "false_negative_count": 70,
+        "false_negative_share": 0.142,
+        "true_positive_count": 84,
+        "true_positive_share": 0.1487
+      },
+      {
+        "category": "31-40",
+        "false_negative_count": 192,
+        "false_negative_share": 0.3895,
+        "true_positive_count": 179,
+        "true_positive_share": 0.3168
+      },
+      {
+        "category": "41-50",
+        "false_negative_count": 116,
+        "false_negative_share": 0.2353,
+        "true_positive_count": 83,
+        "true_positive_share": 0.1469
+      },
+      {
+        "category": "51-60",
+        "false_negative_count": 96,
+        "false_negative_share": 0.1947,
+        "true_positive_count": 87,
+        "true_positive_share": 0.154
+      },
+      {
+        "category": "61+",
+        "false_negative_count": 5,
+        "false_negative_share": 0.0101,
+        "true_positive_count": 89,
+        "true_positive_share": 0.1575
+      }
+    ],
+    "was_contacted_before": [
+      {
+        "category": "0",
+        "false_negative_count": 408,
+        "false_negative_share": 0.8276,
+        "true_positive_count": 249,
+        "true_positive_share": 0.4407
+      },
+      {
+        "category": "1",
+        "false_negative_count": 85,
+        "false_negative_share": 0.1724,
+        "true_positive_count": 316,
+        "true_positive_share": 0.5593
+      }
+    ]
+  },
+  "group_metrics": {
+    "contact": [
+      {
+        "group": "cellular",
+        "count": 5820,
+        "positive_rate": 0.1526,
+        "pr_auc": 0.5048
+      },
+      {
+        "group": "telephone",
+        "count": 589,
+        "positive_rate": 0.1138,
+        "pr_auc": 0.5086
+      },
+      {
+        "group": "unknown",
+        "count": 2634,
+        "positive_rate": 0.0391,
+        "pr_auc": 0.1178
+      }
+    ],
+    "period": [
+      {
+        "group": "diğer aylar",
+        "count": 5235,
+        "positive_rate": 0.1465,
+        "pr_auc": 0.5197
+      },
+      {
+        "group": "mayıs-haziran",
+        "count": 3808,
+        "positive_rate": 0.0764,
+        "pr_auc": 0.3344
+      }
+    ]
+  },
+  "literature": {
+    "moro_2014_roc_auc": 0.794,
+    "model_label": "XGBoost"
+  }
+}

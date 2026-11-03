@@ -7,7 +7,11 @@ import pandas as pd
 
 from src.model_plots import (
     plot_calibration_curves,
+    plot_confusion_matrix,
+    plot_gain_curve,
+    plot_lr_coefficients,
     plot_model_comparison,
+    plot_permutation_importance,
     plot_pr_curves_overlay,
     plot_pr_roc_curves,
     plot_search_results,
@@ -121,3 +125,46 @@ def test_plot_search_results_draws_one_point_per_configuration_and_marks_the_bes
     assert all(len(ax.collections) == 2 for ax in fig.axes)
     assert [len(collection.get_offsets()) for collection in fig.axes[0].collections] == [4, 1]
     plt.close(fig)
+
+
+def test_plot_pr_roc_curves_without_fold_ids_draws_one_curve_and_the_reference():
+    y_true = np.tile([0, 0, 0, 1], 30)
+    proba = np.clip(y_true * 0.3 + np.random.default_rng(42).random(len(y_true)) * 0.7, 0, 1)
+
+    fig = plot_pr_roc_curves(y_true, proba, None, "Test")
+
+    pr_ax, roc_ax = fig.axes[:2]
+    assert len(pr_ax.lines) == 2 and len(roc_ax.lines) == 2
+    plt.close(fig)
+
+
+def test_plot_confusion_matrix_writes_the_four_counts():
+    fig = plot_confusion_matrix({"tn": 7000, "fp": 1000, "fn": 400, "tp": 643})
+
+    texts = " ".join(text.get_text() for text in fig.axes[0].texts)
+    assert all(count in texts for count in ("7.000", "1.000", "400", "643"))
+    plt.close(fig)
+
+
+def test_plot_gain_curve_starts_at_origin_and_ends_at_full_capture():
+    y_true = np.array([0, 1, 0, 1, 0, 0, 1, 0])
+    proba = np.linspace(0.1, 0.9, len(y_true))
+
+    fig = plot_gain_curve(y_true, proba)
+
+    curve = fig.axes[0].lines[0]
+    assert (curve.get_xdata()[0], curve.get_ydata()[0]) == (0, 0)
+    assert (curve.get_xdata()[-1], curve.get_ydata()[-1]) == (1, 1)
+    plt.close(fig)
+
+
+def test_importance_and_coefficient_plots_show_only_the_top_rows():
+    importance = pd.DataFrame({"feature": list("abcdefghijkl"), "importance_mean": np.linspace(0.1, 0.01, 12), "importance_std": 0.001})
+    coefficients = pd.DataFrame({"feature": list("abcdefghijkl"), "coefficient": np.linspace(1, -1, 12)})
+
+    importance_fig = plot_permutation_importance(importance)
+    coefficient_fig = plot_lr_coefficients(coefficients)
+
+    assert len(importance_fig.axes[0].patches) == 10
+    assert len(coefficient_fig.axes[0].patches) == 10
+    plt.close("all")

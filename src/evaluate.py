@@ -10,6 +10,7 @@ from sklearn.metrics import (
     accuracy_score,
     average_precision_score,
     brier_score_loss,
+    confusion_matrix,
     f1_score,
     precision_score,
     recall_score,
@@ -20,6 +21,8 @@ from sklearn.metrics import (
 JSON_DECIMALS = 4
 # Ablasyon varyantının varsayılan yapılmaya aday olması için iyileşmesi gereken katman payı (5 katmanın 4'ü).
 MIN_IMPROVED_FOLD_SHARE = Fraction(4, 5)
+# Kazanç tablosunda aranacak müşteri payları: olasılığa göre sıralı listenin ilk %10, %20 ve %30'u.
+DEFAULT_GAIN_FRACTIONS = (0.1, 0.2, 0.3)
 
 
 def round_metrics(metrics: dict[str, float]) -> dict[str, float]:
@@ -40,6 +43,49 @@ def compute_metrics(y_true: Sequence[int] | np.ndarray, y_pred: Sequence[int] | 
         "roc_auc": float(roc_auc_score(y_true_array, y_proba_array)),
         "pr_auc": float(average_precision_score(y_true_array, y_proba_array)),
     }
+
+
+def confusion_counts(y_true: Sequence[int] | np.ndarray, y_pred: Sequence[int] | np.ndarray) -> dict[str, int]:
+    """İkili hedef için karmaşıklık matrisi sayıları: tn, fp, fn, tp."""
+    true_negative, false_positive, false_negative, true_positive = confusion_matrix(np.asarray(y_true), np.asarray(y_pred), labels=[0, 1]).ravel()
+    return {"tn": int(true_negative), "fp": int(false_positive), "fn": int(false_negative), "tp": int(true_positive)}
+
+
+def gain_table(
+    y_true: Sequence[int] | np.ndarray,
+    proba: Sequence[float] | np.ndarray,
+    fractions: Sequence[float] = DEFAULT_GAIN_FRACTIONS,
+) -> list[dict[str, float]]:
+    """Müşteriler kabul olasılığına göre azalan sıralanıp ilk `fraction` kadarı arandığında yakalanan kabul edenler.
+
+    contacted = round(fraction · n). capture_rate yakalanan kabul edenlerin tüm kabul edenlere oranıdır.
+    lift = (aranan müşterilerdeki kabul oranı) / (genel kabul oranı); rastgele aramada 1'dir.
+    Eşit olasılıkta sıra, veri sırasına göre kararlı (stable) tutulur.
+    """
+    y_array, proba_array = np.asarray(y_true), np.asarray(proba)
+    if len(y_array) != len(proba_array):
+        raise ValueError(f"Etiket ve olasılık sayıları farklı: {len(y_array)} ve {len(proba_array)}.")
+    total_positives = int(y_array.sum())
+    if total_positives == 0:
+        raise ValueError("Kazanç tablosu için etiketlerde en az bir pozitif örnek bulunmalı.")
+    sorted_labels = y_array[np.argsort(-proba_array, kind="stable")]
+    base_rate = total_positives / len(y_array)
+    rows = []
+    for fraction in fractions:
+        if not 0 < fraction <= 1:
+            raise ValueError(f"Oran 0 ile 1 arasında olmalı, {fraction} verildi.")
+        contacted = max(1, round(fraction * len(y_array)))
+        captured = int(sorted_labels[:contacted].sum())
+        rows.append(
+            {
+                "fraction": float(fraction),
+                "contacted": contacted,
+                "captured_positives": captured,
+                "capture_rate": captured / total_positives,
+                "lift": (captured / contacted) / base_rate,
+            }
+        )
+    return rows
 
 
 def _require_multiple_folds(fold_count: int) -> None:
