@@ -1,10 +1,26 @@
 [theme]
 base = "light"
-primaryColor = "#1E3A8A"
+primaryColor = "#1E3A5F"
 backgroundColor = "#F8FAFC"
-secondaryBackgroundColor = "#E8ECF1"
+secondaryBackgroundColor = "#F1F3F5"
 textColor = "#0F172A"
-font = "sans serif"
+font = "IBM Plex Sans:https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+headingFontWeights = [700, 600, 600, 600, 600, 600]
+metricValueFontWeight = 600
+metricValueFontSize = "1.75rem"
+showSidebarBorder = true
+borderColor = "#E4E7EB"
+showWidgetBorder = true
+baseRadius = "0.6rem"
+greenColor = "#059669"
+redColor = "#DC2626"
+orangeColor = "#D97706"
+linkColor = "#2563EB"
+dataframeHeaderBackgroundColor = "#F1F3F5"
+
+[theme.sidebar]
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F1F3F5"
 
 [browser]
 gatherUsageStats = false
