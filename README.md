@@ -120,7 +120,7 @@ Hafta 2'den 9'a tüm analiz betiklerini sırayla çalıştırır ve `reports/haf
 ```bash
 streamlit run app/streamlit_app.py
 ```
-Arayüzde tek müşteri için kabul olasılığı, karar, olasılık bandı ve ilk üç etken görülür. Toplu CSV sekmesi `bank-full.csv` düzenindeki dosyayı olasılığa göre sıralar. Arayüzde kimlik doğrulama yoktur, yerel kullanım için tasarlanmıştır.
+Arayüzde tek müşteri için kabul olasılığı, karar, olasılık bandı ve ilk üç etken görülür. Olasılık, genel kabul oranı ve karar eşiği işaretli bir çubukta gösterilir. Toplu CSV sekmesi `bank-full.csv` düzenindeki dosyayı olasılığa göre sıralar, sıralanan, kabul edecek ve geçersiz satır sayılarını özetler ve örnek bir CSV şablonu sunar. Kenar çubuğunda modelin türü, karar eşiği, genel kabul oranı ve çapraz doğrulama metrikleri model paketinden okunarak gösterilir. Tema `.streamlit/config.toml` içindedir, IBM Plex Sans yazı tipi Google Fonts'tan yüklenir (internet yoksa sistem yazı tipine düşer). Arayüzde kimlik doğrulama yoktur, yerel kullanım için tasarlanmıştır.
 
 ## Haftalık İlerleme
 | Hafta | Durum |
